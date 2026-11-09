@@ -155,7 +155,14 @@ a{color:var(--v)}
 .nav .lgn{padding:16px 18px 10px;border-bottom:1px solid var(--b)}
 .nav .lgn img{height:44px;display:block}
 .nav .lgn small{display:block;color:var(--g);font-size:12.5px;margin-top:6px}
-.nav .grp{font-size:11.5px;font-weight:700;color:var(--v-osc);text-transform:uppercase;letter-spacing:.07em;padding:14px 18px 6px}
+.nav .grp{display:flex;align-items:center;justify-content:space-between;width:100%;border:0;background:none;font-size:11.5px;font-weight:700;color:var(--v-osc);text-transform:uppercase;letter-spacing:.07em;padding:12px 18px 8px;cursor:pointer;text-align:left}
+.nav .grp:hover{background:#F6FAF7}
+.nav .grp .fl{font-size:11px;transition:transform .2s;color:var(--g)}
+.nav .gr.abierto .grp .fl{transform:rotate(180deg)}
+.nav .gr .its{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s ease}
+.nav .gr.abierto .its{grid-template-rows:1fr}
+.nav .gr .its>div{overflow:hidden}
+.nav .gr .grp .n{font-size:10.5px;background:var(--v2);color:var(--v);border-radius:10px;padding:1px 7px;margin-left:auto;margin-right:8px;letter-spacing:0}
 .nav a{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--t);text-decoration:none;font-size:14.5px;border-left:3px solid transparent;cursor:pointer}
 .nav a:hover{background:var(--v2)}
 .nav a.on{background:var(--v2);border-left-color:var(--v);color:var(--v-osc);font-weight:700}
@@ -276,13 +283,22 @@ function menuLateral() {
     cocina && (S.minutas || []).length ? { g: 'Cocina y servicio', it: [['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista']] } : null,
     B ? { g: 'Bodega y stock', it: [['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista']] } : null,
     { g: 'Inocuidad y prevención', it: f.map(x => [x.icono, x.titulo, `ir(formulario,'${x.id}')`, 'form:' + x.id]) },
-    A ? { g: 'Administración', it: [['📊', 'Resumen del día', 'ir(resumenVista)', 'resumenVista'], ['🍽️', 'Raciones del mes y PAE', 'ir(racionesVista)', 'racionesVista'], ['🗂️', 'Registros', 'ir(registrosVista)', 'registrosVista'], ['📒', 'Movimientos', 'ir(movimientosVista)', 'movimientosVista'], ['🧾', 'Recepciones', 'ir(recepcionesVista)', 'recepcionesVista'], ['📑', 'Permisos y cursos', 'ir(documentosVista)', 'documentosVista'], ['👥', 'Trabajadores', 'ir(trabajadoresVista)', 'trabajadoresVista'], ['⚙️', 'Configuración', 'ir(configVista)', 'configVista'], ['📗', 'Abrir planilla', 'abrirPlanilla()', '']] } : null,
+    A ? { g: 'Administración', it: [['📊', 'Resumen del día', 'ir(resumenVista)', 'resumenVista'], ['🍽️', 'Raciones del mes y PAE', 'ir(racionesVista)', 'racionesVista'], ['🗂️', 'Registros', 'ir(registrosVista)', 'registrosVista'], ['📒', 'Movimientos', 'ir(movimientosVista)', 'movimientosVista'], ['🧾', 'Recepciones', 'ir(recepcionesVista)', 'recepcionesVista'], ['📑', 'Permisos y cursos', 'ir(documentosVista)', 'documentosVista'], ['👥', 'Usuarios y trabajadores', 'ir(trabajadoresVista)', 'trabajadoresVista'], ['⚙️', 'Configuración', 'ir(configVista)', 'configVista'], ['📗', 'Abrir planilla', 'abrirPlanilla()', '']] } : null,
     { g: 'Mi cuenta', it: [['👤', 'Mi perfil', 'ir(perfil)', 'perfil']] }
   ].filter(Boolean);
   const top = pila.length ? pila[pila.length - 1] : null, act = top ? (top[0].name === 'formulario' ? 'form:' + top[1][0] : top[0].name) : 'inicio';
   return `<div class="lgn"><img src="${LOGO}" alt="Clean Food"><small>${h(u.nombre)} · ${h(ROLES[u.rol] || u.rol)}</small></div>
-    ${G.map(x => `${x.g ? `<div class="grp">${h(x.g)}</div>` : ''}${x.it.filter(Boolean).map(i => `<a class="${i[3] && i[3] === act ? 'on' : ''}" onclick="document.body.classList.remove('navab');${i[2]}"><span class="ic">${i[0]}</span>${h(i[1])}</a>`).join('')}`).join('')}
+    ${G.map(x => {
+      const its = x.it.filter(Boolean), links = its.map(i => `<a class="${i[3] && i[3] === act ? 'on' : ''}" onclick="document.body.classList.remove('navab');${i[2]}"><span class="ic">${i[0]}</span>${h(i[1])}</a>`).join('');
+      if (!x.g) return links;
+      const abierto = its.some(i => i[3] === act) || (ls.get('nav_abiertos', ['Encargos y agenda']) || []).includes(x.g);
+      return `<div class="gr ${abierto ? 'abierto' : ''}" data-g="${h(x.g)}"><button class="grp" onclick="toggleGrupo(this.parentNode)"><span>${h(x.g)}</span><span class="n">${its.length}</span><span class="fl">▼</span></button><div class="its"><div>${links}</div></div></div>`;
+    }).join('')}
     <div class="pie2"><img src="${TAKEAFOOD}" alt="" style="height:22px;opacity:.8"><br>${h(S.version || '')}</div>`;
+}
+function toggleGrupo(el) {
+  el.classList.toggle('abierto');
+  const ab = $$('.nav .gr.abierto').map(x => x.dataset.g); ls.set('nav_abiertos', ab);
 }
 function pantalla(titulo, html, opts = {}) {
   const u = S.usuario;
@@ -314,7 +330,7 @@ function login() {
     <img class="marca" src="${LOGO}" alt="Clean Food">
     <p class="sub">Bodega · Inocuidad · Prevención</p>
     <div class="card">
-      <label class="l">RUT</label><input id="rut" autocomplete="username" placeholder="12.345.678-9" value="${h(ls.get('ultRut', ''))}">
+      <label class="l">RUT</label><input id="rut" autocomplete="username" placeholder="RUT o usuario" value="${h(ls.get('ultRut', ''))}">
       <label class="l">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••">
       <button class="btn full" style="margin-top:16px" onclick="entrar()">Entrar</button>
       <p class="muted centro" style="margin:12px 0 0;font-size:13px">La primera vez tu PIN son los 4 primeros números de tu RUT.</p>
@@ -390,7 +406,7 @@ function inicio() {
       ${tile("ir(movimientosVista)", '📒', 'Movimientos', 'Entradas y salidas')}
       ${tile("ir(recepcionesVista)", '🧾', 'Recepciones', 'Facturas recibidas')}
       ${tile("ir(documentosVista)", '📑', 'Permisos y cursos', 'Sanitarios, vehículos, faena')}
-      ${tile("ir(trabajadoresVista)", '👥', 'Trabajadores', 'Accesos y cargos')}
+      ${tile("ir(trabajadoresVista)", '👥', 'Usuarios', 'Trabajadores, accesos y cargos')}
       ${tile("ir(configVista)", '⚙️', 'Configuración', 'Bodegas, servicios, equipos')}
       ${tile("abrirPlanilla()", '📗', 'Abrir planilla', 'Google Sheets')}
     </div>`;
@@ -659,7 +675,7 @@ function parsearDTE(txt) {
   return { tipo: tipos[tipoN] || 'Factura', folio: t(D, 'Folio'), fecha: t(D, 'FchEmis'), rut: t(D, 'RUTEmisor'), prov: t(D, 'RznSoc') || t(D, 'RznSocEmisor'), monto: t(D, 'MntTotal'), items };
 }
 const norm = s => String(s || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
-const normRut = r => String(r || '').toUpperCase().replace(/[^0-9K]/g, '');
+const normRut = r => { const x = String(r || '').trim().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[0-9.\-\sK]+$/.test(x) ? x.replace(/[^0-9K]/g, '') : x.replace(/[^A-Z0-9]/g, ''); };
 function emparejar(x, rut) {
   const it = { ...x, cant: x.qf, costo: x.pf || '', f: 1, c: '' };
   const n = norm(x.nf), al = S.alias || [];
@@ -1297,32 +1313,49 @@ function editarDoc(id) {
   if ($('#dc_del')) $('#dc_del').onclick = () => confirm('¿Eliminar este documento?') && enviar(true);
 }
 
+let TRABS = [], FU = { q: '', rol: '' };
 async function trabajadoresVista() {
-  pantalla('Trabajadores', '<div class="card lista" id="tr_l"><p class="muted">Cargando…</p></div>', { barra: `<button class="btn" onclick="editarTrab()">+ Agregar trabajador</button>` });
+  pantalla('Usuarios', `<div class="filtros"><input id="us_q" placeholder="🔎 Buscar nombre o RUT" value="${h(FU.q)}">${selectHTML('us_rol', Object.keys(ROLES), FU.rol, 'Todos los cargos')}</div>
+    <div id="us_kpi"></div><div class="card lista" id="tr_l"><p class="muted">Cargando…</p></div>`, { barra: `<button class="btn" onclick="editarTrab()">+ Agregar usuario</button>` });
+  $('#us_rol').innerHTML = '<option value="">Todos los cargos</option>' + Object.keys(ROLES).map(r => `<option value="${r}" ${r === FU.rol ? 'selected' : ''}>${ROLES[r]}</option>`).join('');
+  $('#us_q').oninput = $('#us_rol').onchange = () => { FU = { q: $('#us_q').value, rol: $('#us_rol').value }; pintarTrabs(); };
   try { TRABS = await api('trabajadores', {}, { mudo: true }); pintarTrabs(); } catch (e) { toast(e.message); }
 }
-let TRABS = [];
 function pintarTrabs() {
-  $('#tr_l').innerHTML = TRABS.map((t, i) => `<div class="it" onclick="editarTrab(${i})" style="${t.activo ? '' : 'opacity:.5'}"><div class="c"><b>${h(t.nombre)}</b><small>${h(t.rut)} · ${h(t.cargo)}${t.servicio ? ' · ' + h(t.servicio) : ''}</small></div><span class="badge b-g">${h(ROLES[t.rol] || t.rol)}</span></div>`).join('');
+  const q = norm(FU.q), l = TRABS.map((t, i) => ({ ...t, i })).filter(t => (!q || norm(t.nombre + ' ' + t.rut + ' ' + t.cargo).includes(q)) && (!FU.rol || t.rol === FU.rol))
+    .sort((a, b) => (b.activo - a.activo) || (a.rol === 'admin' ? -1 : 0) - (b.rol === 'admin' ? -1 : 0) || a.nombre.localeCompare(b.nombre));
+  const cuenta = r => TRABS.filter(t => t.activo && t.rol === r).length;
+  $('#us_kpi').innerHTML = `<div class="kpis">${Object.keys(ROLES).filter(cuenta).map(r => `<div class="kpi"><small>${h(ROLES[r])}</small><b>${cuenta(r)}</b></div>`).join('')}</div>`;
+  $('#tr_l').innerHTML = l.length ? l.map(t => `<div class="it" onclick="editarTrab(${t.i})" style="${t.activo ? '' : 'opacity:.5'}">
+    <div style="width:40px;height:40px;border-radius:50%;background:${t.rol === 'admin' ? 'var(--v)' : 'var(--v2)'};color:${t.rol === 'admin' ? '#fff' : 'var(--v)'};display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto">${h(t.nombre.split(' ').map(x => x[0]).slice(0, 2).join(''))}</div>
+    <div class="c"><b>${h(t.nombre)}</b><small>${h(t.rut)}${t.cargo ? ' · ' + h(t.cargo) : ''}${t.servicio ? ' · ' + h(t.servicio) : ''}</small>
+    <small style="display:block">${t.ultimo ? 'Último ingreso ' + fFecha(t.ultimo) : 'Nunca ha entrado'}${t.pinSinCambiar ? ' · <span style="color:var(--a)">PIN inicial</span>' : ''}${!t.activo ? ' · desactivado' : ''}${!/^\d/.test(t.rut) ? ' · <span style="color:var(--a)">falta RUT</span>' : ''}</small></div>
+    <span class="badge ${t.rol === 'admin' ? 'b-ok' : 'b-g'}">${h(ROLES[t.rol] || t.rol)}</span></div>`).join('') : '<p class="muted">Sin usuarios con ese filtro.</p>';
 }
 function editarTrab(i) {
-  const t = i != null ? TRABS[i] : { rut: '', nombre: '', cargo: '', rol: 'cocina', servicio: '', tel: '', activo: true };
-  modal(`<h3>${i != null ? 'Editar' : 'Nuevo'} trabajador</h3>
-    <label class="l">RUT</label><input id="tr_rut" value="${h(t.rut)}" ${i != null ? 'disabled' : ''} placeholder="12.345.678-9">
+  const nuevo = i == null, t = nuevo ? { rut: '', nombre: '', cargo: '', rol: 'cocina', servicio: '', tel: '', activo: true } : TRABS[i];
+  const yo = !nuevo && normRut(t.rut) === normRut(S.usuario.rut);
+  modal(`<h3>${nuevo ? 'Nuevo usuario' : 'Editar usuario'}</h3>
+    <label class="l">RUT <small>(o usuario temporal, ej: PATRICIO)</small></label><input id="tr_rut" value="${h(t.rut)}" placeholder="12.345.678-9">
     <label class="l">Nombre completo</label><input id="tr_nom" value="${h(t.nombre)}">
-    <label class="l">Cargo</label><input id="tr_cargo" value="${h(t.cargo)}" placeholder="Cocinera, ayudante, chofer…">
+    <div class="row"><div><label class="l">Cargo</label><input id="tr_cargo" value="${h(t.cargo)}" placeholder="Cocinera, chofer…"></div><div><label class="l">Teléfono</label><input id="tr_tel" value="${h(t.tel)}" inputmode="tel"></div></div>
     <label class="l">Qué ve en la app</label><select id="tr_rol">${Object.keys(ROLES).map(r => `<option value="${r}" ${r === t.rol ? 'selected' : ''}>${ROLES[r]}</option>`).join('')}</select>
-    <p class="muted" style="font-size:13px;margin:6px 0 0">Cocina y Atención: control del manipulador, temperaturas, limpieza, raciones. Chofer: checklist del vehículo. Bodega: recepción, salidas y stock. Administración: todo.</p>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">Cocina y Atención: menú, inocuidad, raciones, ventas y encargos. Chofer: vehículo, rutina y prevención. Bodega: recepción, salidas, stock y pedidos. Administración: todo, incluidos los usuarios.</p>
     <label class="l">Servicio habitual</label>${selectHTML('tr_serv', S.config.servicios, t.servicio, '—')}
-    <label class="l">Teléfono</label><input id="tr_tel" value="${h(t.tel)}" inputmode="tel">
-    ${i != null ? `<label style="display:flex;gap:8px;margin-top:12px"><input type="checkbox" id="tr_act" style="width:auto" ${t.activo ? 'checked' : ''}> Activo (puede entrar)</label><label style="display:flex;gap:8px;margin-top:8px"><input type="checkbox" id="tr_reset" style="width:auto"> Reiniciar PIN (vuelve a los 4 primeros números del RUT)</label>` : '<p class="muted" style="font-size:13px">Su PIN inicial serán los 4 primeros números del RUT.</p>'}
-    <div class="row" style="margin-top:16px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="tr_ok">Guardar</button></div>`);
-  $('#tr_ok').onclick = async () => {
-    const d = { rut: $('#tr_rut').value.trim(), nombre: $('#tr_nom').value.trim(), cargo: $('#tr_cargo').value.trim(), rol: $('#tr_rol').value, servicio: $('#tr_serv').value, tel: $('#tr_tel').value.trim(), activo: i == null || $('#tr_act').checked, resetPin: i != null && $('#tr_reset').checked };
-    if (!d.rut || !d.nombre) return toast('RUT y nombre son obligatorios');
-    if (i == null && !rutValido(d.rut)) return toast('El RUT no es válido (revisa el dígito verificador)');
-    try { TRABS = await api('trabajador', { t: d }); S.trabajadores = TRABS.map(x => ({ rut: x.rut, nombre: x.nombre })); cerrarModal(); pintarTrabs(); toast('✅ Guardado'); } catch (e) { toast(e.message); }
+    <label class="l">${nuevo ? 'PIN' : 'PIN nuevo'} <small>(${nuevo ? 'vacío = 4 primeros números del RUT, o 1234 si es usuario' : 'déjalo vacío para no cambiarlo'})</small></label><input id="tr_pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+    ${!nuevo ? `<label style="display:flex;gap:8px;margin-top:12px"><input type="checkbox" id="tr_act" style="width:auto" ${t.activo ? 'checked' : ''} ${yo ? 'disabled' : ''}> Activo (puede entrar)</label>
+    <label style="display:flex;gap:8px;margin-top:8px"><input type="checkbox" id="tr_reset" style="width:auto"> Volver al PIN inicial</label>` : ''}
+    <div class="row" style="margin-top:16px">${!nuevo && !yo ? '<button class="btn rojo" id="tr_del">Eliminar</button>' : '<button class="btn gris" onclick="cerrarModal()">Cancelar</button>'}<button class="btn" id="tr_ok">Guardar</button></div>`);
+  const enviar = async borrar => {
+    const d = { nuevo, original: nuevo ? '' : t.rut, rut: $('#tr_rut').value.trim(), nombre: $('#tr_nom').value.trim(), cargo: $('#tr_cargo').value.trim(), rol: $('#tr_rol').value, servicio: $('#tr_serv').value, tel: $('#tr_tel').value.trim(),
+      pin: $('#tr_pin').value.trim(), activo: nuevo || yo || $('#tr_act').checked, resetPin: !nuevo && $('#tr_reset').checked, borrar };
+    if (!d.rut || !d.nombre) return toast('RUT (o usuario) y nombre son obligatorios');
+    if (/^\d/.test(d.rut) && !rutValido(d.rut)) return toast('El RUT no es válido (revisa el dígito verificador)');
+    if (d.pin && !/^\d{4,6}$/.test(d.pin)) return toast('El PIN debe tener 4 a 6 números');
+    try { TRABS = await api('trabajador', { t: d }); S.trabajadores = TRABS.map(x => ({ rut: x.rut, nombre: x.nombre })); cerrarModal(); pintarTrabs(); toast(borrar ? 'Usuario eliminado' : '✅ Guardado'); } catch (e) { toast(e.message, 4500); }
   };
+  $('#tr_ok').onclick = () => enviar(false);
+  if ($('#tr_del')) $('#tr_del').onclick = () => confirm('¿Eliminar a ' + t.nombre + '? Si solo dejó de trabajar, mejor desactívalo para mantener su historial.') && enviar(true);
 }
 function rutValido(r) { const c = normRut(r); if (c.length < 2) return false; const cu = c.slice(0, -1), dv = c.slice(-1); let s = 0, m = 2; for (let i = cu.length - 1; i >= 0; i--) { s += Number(cu[i]) * m; m = m === 7 ? 2 : m + 1; } const e = 11 - s % 11; return dv === (e === 11 ? '0' : e === 10 ? 'K' : String(e)); }
 
