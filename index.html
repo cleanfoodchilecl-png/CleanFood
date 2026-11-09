@@ -40,6 +40,9 @@ h3{margin:0 0 8px;font-size:17px}
 .hero b{font-size:21px;display:block}
 .hero small{opacity:.9;font-size:14px}
 .hero .chips{margin-top:12px;position:relative;z-index:1}
+.hero>small,.hero>b{position:relative;z-index:1}
+.hero-foto{position:absolute;right:0;top:0;bottom:0;width:46%;background:url(fondo.jpg) center 42%/cover no-repeat;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 38%);mask-image:linear-gradient(to right,transparent 0,#000 38%);z-index:0}
+@media(max-width:700px){.hero-foto{display:none}}
 .hero .hc{background:rgba(255,255,255,.18);border-radius:20px;padding:6px 12px;font-size:13.5px;font-weight:600;cursor:pointer;border:0;color:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px}
 .tile{background:var(--w);border:1px solid var(--b);border-radius:var(--rad);padding:14px 13px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:7px;min-height:104px;box-shadow:var(--sh);transition:transform .12s,box-shadow .12s,border-color .12s}
@@ -382,7 +385,7 @@ function inicio() {
   const docsMal = (S.misDocumentos || []).filter(d => d.estado === 'Vencido' || d.estado === 'Por vencer');
   const st = (S.stock || []), alertas = st.filter(x => x.estado !== 'OK' && x.estado !== 'Agotado').length, vencen = st.filter(x => x.estado === 'Vencido' || x.estado === 'Vence pronto').length;
   const fecha = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
-  let html = `<div class="hero"><small>${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</small><b>Hola, ${h(u.nombre.split(' ')[0])} 👋</b><small>${h(u.cargo || ROLES[u.rol] || '')}${u.servicio ? ' · ' + h(u.servicio) : ''}</small>
+  let html = `<div class="hero"><div class="hero-foto"></div><small>${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</small><b>Hola, ${h(u.nombre.split(' ')[0])} 👋</b><small>${h(u.cargo || ROLES[u.rol] || '')}${u.servicio ? ' · ' + h(u.servicio) : ''}</small>
     <div class="chips">${esBodega() && st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${esBodega() && vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${encHoy().length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">📅 ${encHoy().length} encargo${encHoy().length > 1 ? 's' : ''} hoy</button>` : ''}${tareasDe(hoyISO()).length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">🗂️ ${tareasDe(hoyISO()).length} tarea${tareasDe(hoyISO()).length > 1 ? 's' : ''} clave hoy</button>` : ''}${esBodega() && pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div></div>`;
   if (docsMal.length) html += `<div class="aviso">${docsMal.map(d => `⏰ <b>${h(d.tipo)}</b>: ${d.dv < 0 ? 'vencido el ' : 'vence el '}${fFecha(d.venc)}`).join('<br>')}</div>`;
   html += pendientesHTML();
@@ -1038,7 +1041,7 @@ async function racionesVista(mes) {
 /* ═════════════════════ Minutas (menú de hoy) ═════════════════════ */
 function lunesDe(iso) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; }
 function semanaMinuta(iso) {
-  const a = lunesDe(S.config.minutaSem1 || '2026-08-10'), b = lunesDe(iso), n = Math.round((b - a) / 6048e5), c = S.config.minutaCiclo || 4;
+  const a = lunesDe(String(S.config.minutaSem1 || '2026-08-10').slice(0, 10)), b = lunesDe(iso), n = Math.round((b - a) / 6048e5), c = S.config.minutaCiclo || 4;
   return ((n % c) + c) % c + 1;
 }
 function menuDe(cli, iso) { const d = (new Date(iso + 'T12:00:00').getDay() + 6) % 7 + 1, s = semanaMinuta(iso); return (S.minutas || []).filter(m => m.c === cli && m.s === s && m.d === d); }
