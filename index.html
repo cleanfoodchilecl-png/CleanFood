@@ -143,6 +143,13 @@ a{color:var(--v)}
 .enc{border-left:4px solid var(--v)}
 .enc.Cancelado{opacity:.5;border-left-color:#999}.enc.Entregado{border-left-color:#999}.enc.Pendiente{border-left-color:var(--a)}
 .rut .it{cursor:pointer}.rut .it.hecho b{text-decoration:line-through;color:var(--g)}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+.tabs button{flex:0 0 auto;border:1.5px solid #D5DED8;background:#fff;border-radius:20px;padding:7px 13px;font-size:14px;cursor:pointer;white-space:nowrap}
+.tabs button.on{background:var(--v);border-color:var(--v);color:#fff;font-weight:700}
+.menu .sv{font-size:12px;color:var(--v-osc);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:10px}
+.menu .pl{font-size:15.5px;margin-top:2px}
+.vt input{max-width:70px;text-align:center;padding:9px 6px}
+.vt td:first-child{width:50%}
 .pie{text-align:center;margin-top:30px;color:var(--g);font-size:12px}
 .pie img{height:28px;opacity:.75;display:block;margin:0 auto 6px}
 .pie .dos{display:flex;gap:18px;justify-content:center;align-items:center;margin-bottom:6px}.pie .dos img{margin:0;height:30px;opacity:.85}
@@ -307,8 +314,14 @@ function inicio() {
   const st = (S.stock || []), alertas = st.filter(x => x.estado !== 'OK' && x.estado !== 'Agotado').length, vencen = st.filter(x => x.estado === 'Vencido' || x.estado === 'Vence pronto').length;
   const fecha = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
   let html = `<div class="hero"><small>${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</small><b>Hola, ${h(u.nombre.split(' ')[0])} 👋</b><small>${h(u.cargo || ROLES[u.rol] || '')}${u.servicio ? ' · ' + h(u.servicio) : ''}</small>
-    <div class="chips">${esBodega() && st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${esBodega() && vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${encHoy().length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">📅 ${encHoy().length} encargo${encHoy().length > 1 ? 's' : ''} hoy</button>` : ''}${esBodega() && pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div></div>`;
+    <div class="chips">${esBodega() && st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${esBodega() && vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${encHoy().length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">📅 ${encHoy().length} encargo${encHoy().length > 1 ? 's' : ''} hoy</button>` : ''}${tareasDe(hoyISO()).length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">🗂️ ${tareasDe(hoyISO()).length} tarea${tareasDe(hoyISO()).length > 1 ? 's' : ''} clave hoy</button>` : ''}${esBodega() && pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div></div>`;
   if (docsMal.length) html += `<div class="aviso">${docsMal.map(d => `⏰ <b>${h(d.tipo)}</b>: ${d.dv < 0 ? 'vencido el ' : 'vence el '}${fFecha(d.venc)}`).join('<br>')}</div>`;
+  const vemenu = ['admin', 'cocina', 'atencion'].includes(S.usuario.rol) && (S.minutas || []).length;
+  if (vemenu) {
+    const cli = clienteMenuDefault(), hoyM = menuDe(cli, hoyISO());
+    html += `<h2>Menú de hoy</h2><div class="card menu" onclick="ir(menuVista)" style="cursor:pointer"><div style="display:flex;justify-content:space-between"><b>${h(cli)}</b><small class="muted">Semana ${semanaMinuta(hoyISO())} · ver todo ›</small></div>${hoyM.length ? hoyM.filter(x => !/^Ensalada$|Complementos/i.test(x.sv)).slice(0, 4).map(x => `<div class="sv">${h(x.sv)}</div><div class="pl">${h(x.p)}</div>`).join('') : '<p class="muted" style="margin:8px 0 0">Hoy no hay minuta para este servicio.</p>'}</div>
+    <div class="grid" style="margin-top:12px">${tile("ir(menuVista)", '📖', 'Minutas', 'Menú por cliente y semana')}${tile("ir(ventasVista)", '🥡', 'Ventas y merma Take a Food', 'Vendidos, merma y perdidas')}</div>`;
+  }
   html += `<h2>Encargos y agenda</h2><div class="grid">${tile("CAL.sel=hoyISO();ir(calendarioVista)", '📅', 'Calendario de encargos', encHoy().length ? encHoy().length + ' para hoy' : 'Pedidos, eventos y entregas', 'dest')}${(S.rutina || []).length && ['admin', 'bodega', 'chofer'].includes(S.usuario.rol) ? tile("ir(rutinaVista)", '🕒', 'Rutina del día', 'Logística y repartos') : ''}${puedeEncargar() ? tile("editarEncargo(null,hoyISO())", '➕', 'Nuevo encargo', '') : ''}</div>`;
   if (esBodega()) {
     html += `<h2>Bodega y stock</h2><div class="grid">
@@ -329,6 +342,7 @@ function inicio() {
     html += `<h2>Administración</h2><div class="grid">
       ${tile("ir(resumenVista)", '📊', 'Resumen del día', 'Alertas y registros', 'dest')}
       ${tile("ir(registrosVista)", '🗂️', 'Registros', 'Formularios enviados')}
+      ${tile("ir(racionesVista)", '🍽️', 'Raciones del mes', 'Por cliente, para facturar')}
       ${tile("ir(movimientosVista)", '📒', 'Movimientos', 'Entradas y salidas')}
       ${tile("ir(recepcionesVista)", '🧾', 'Recepciones', 'Facturas recibidas')}
       ${tile("ir(documentosVista)", '📑', 'Permisos y cursos', 'Sanitarios, vehículos, faena')}
@@ -505,7 +519,20 @@ function recepcion() {
   $('main').addEventListener('change', () => leerCabecera());
   $('#r_bodega').addEventListener('change', e => $('#r_marca').innerHTML = marcaBodega(e.target.value));
 }
-function provElegido(inp) { const p = (S.proveedores || []).find(x => x.nombre === inp.value); if (p && !$('#r_rut').value) $('#r_rut').value = p.rut; }
+function provElegido(inp) {
+  const p = (S.proveedores || []).find(x => x.nombre === inp.value); if (p && !$('#r_rut').value) $('#r_rut').value = p.rut;
+  if (p) api('pedidos', { proveedor: p.nombre }, { mudo: true }).then(l => {
+    const u = l[0]; if (!u || !u.lineas.length || !$('#items')) return;
+    $('#items').insertAdjacentHTML('beforebegin', `<div class="aviso v" id="r_ped">🛒 Último pedido a ${h(p.nombre)} (${fFecha(u.fecha)}): ${u.lineas.length} productos. <button class="btn chico" style="margin-top:6px" onclick="cargarPedido('${u.id}')">Cargar productos del pedido</button></div>`);
+    window._ultPed = u;
+  }).catch(() => { });
+}
+function cargarPedido() {
+  const u = window._ultPed; if (!u) return; leerItems();
+  u.lineas.forEach(l => { if (!REC.items.some(i => i.c === l.c)) REC.items.push({ c: l.c, cant: l.cant }); });
+  REC.items = REC.items.filter(i => i.c || i.cant); pintarItems(); leerCabecera(); const a = $('#r_ped'); if (a) a.remove();
+  toast('Revisa que las cantidades coincidan con lo que llegó');
+}
 function leerCabecera() {
   if (!REC || !$('#r_bodega')) return;
   Object.assign(REC.cab, { bodega: $('#r_bodega').value, proveedor: $('#r_proveedor').value.trim(), rut: $('#r_rut').value.trim(), tipo: $('#r_tipo').value, folio: $('#r_folio').value.trim(), fecha: $('#r_fecha').value, monto: $('#r_monto').value, temp: $('#r_temp').value, obs: $('#r_obs').value });
@@ -796,7 +823,7 @@ async function calendarioVista() {
       <div class="cal">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(x => `<div class="dn">${x}</div>`).join('')}
         ${dias.map(d => `<div class="d ${d.slice(5, 7) != String(CAL.m + 1).padStart(2, '0') ? 'fuera' : ''} ${d === hoyISO() ? 'hoy' : ''} ${d === CAL.sel ? 'sel' : ''}" data-d="${d}" onclick="CAL.sel='${d}';pintarCal()"><span>${Number(d.slice(8))}</span><span class="cnt"></span></div>`).join('')}
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--g)"><span><i class="pt" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--v)"></i> Encargo</span>${esBodega() ? '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2F6FDE"></i> Pedir a proveedor</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lima)"></i> Llega proveedor</span>' : ''}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--g)"><span><i class="pt" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--v)"></i> Encargo</span>${esBodega() ? '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2F6FDE"></i> Pedir a proveedor</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lima)"></i> Llega proveedor</span>' : ''}${(S.tareas || []).length ? '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E07A00"></i> Tarea clave</span>' : ''}</div>
     </div>
     <div id="cal_dia"></div>`, { barra: puedeEncargar() ? `<button class="btn" onclick="editarEncargo(null, CAL.sel)">➕ Nuevo encargo</button>` : '' });
   CAL.dias = dias;
@@ -815,6 +842,7 @@ function pintarCal() {
     const pts = [];
     if (esBodega() && proveedoresDia(d, 'pedido').length) pts.push('#2F6FDE');
     if (esBodega() && proveedoresDia(d, 'llegada').length) pts.push('var(--lima)');
+    if (tareasDe(d).length) pts.push('#E07A00');
     $('.cnt', el).innerHTML = (n ? `<span class="n">${n}</span>` : '') + (pts.length ? `<span class="pts">${pts.map(c => `<i class="pt" style="background:${c}"></i>`).join('')}</span>` : '');
   });
   const d = CAL.sel, lista = CAL.enc.filter(e => e.fecha === d);
@@ -823,6 +851,7 @@ function pintarCal() {
   $('#cal_dia').innerHTML = `<h2 style="text-transform:none;letter-spacing:0;font-size:15px">${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</h2>
     ${lista.length ? lista.map(encargoCard).join('') : '<div class="card muted centro">Sin encargos este día.</div>'}
     ${ped.length || lle.length ? `<div class="card" style="font-size:14.5px">${ped.length ? `📞 <b>Pedir a:</b> ${h(ped.join(', '))}<br>` : ''}${lle.length ? `🚚 <b>Llegan:</b> ${h(lle.join(', '))}` : ''}</div>` : ''}
+    ${tareasDe(d).length ? `<div class="card"><b>🗂️ Tareas clave del día</b>${tareasHTML(d)}</div>` : ''}
     ${['admin', 'bodega', 'chofer'].includes(S.usuario.rol) && rutinaDe(d).length ? `<details class="card"><summary>🕒 Rutina de logística (${rutinaDe(d).length} tareas)</summary>${rutinaHTML(d)}</details>` : ''}`;
 }
 function encargoCard(e) {
@@ -890,6 +919,128 @@ function rutinaVista() {
   pantalla('Rutina del día', lista.length ? `<p class="muted" style="margin:0 2px 10px">Toca cada tarea al terminarla. Se guarda en este teléfono.</p><div class="card">${rutinaHTML(iso)}</div>` : '<div class="card muted centro">Hoy no hay rutina cargada.</div>');
 }
 
+/* Tareas clave de administración (planilla Tareas Claves) */
+function tareasDe(iso) {
+  const f = new Date(iso + 'T12:00:00'), dia = f.getDate(), ult = new Date(f.getFullYear(), f.getMonth() + 1, 0).getDate();
+  return (S.tareas || []).map((t, i) => ({ ...t, i })).filter(t => {
+    if (t.f.startsWith('mens')) { const [a, b] = t.dias.split('-').map(Number); const A = Math.min(a, ult), B = Math.min(b || a, ult); return dia >= A && dia <= B; }
+    return diasDe(t.dias).has(diaDe(iso));
+  });
+}
+function tareasHTML(iso) {
+  const hechos = ls.get('tareas_' + iso, []);
+  return `<div class="lista rut">${tareasDe(iso).map(t => `<div class="it ${hechos.includes(t.i) ? 'hecho' : ''}"><span style="font-size:20px;cursor:pointer" onclick="marcarTarea('${iso}',${t.i},this.parentNode)">${hechos.includes(t.i) ? '✅' : '⬜'}</span><div class="c"><b>${h(t.t)}</b><details><summary style="font-weight:400;font-size:13px">Ver detalle</summary><small>${h(t.d)}</small></details></div></div>`).join('')}</div>`;
+}
+function marcarTarea(iso, i, el) {
+  const k = 'tareas_' + iso, hechos = ls.get(k, []); const j = hechos.indexOf(i);
+  if (j >= 0) hechos.splice(j, 1); else hechos.push(i); ls.set(k, hechos);
+  el.classList.toggle('hecho', j < 0); $('span', el).textContent = j < 0 ? '✅' : '⬜';
+}
+
+/* Raciones del mes por cliente (para facturar) */
+async function racionesVista(mes) {
+  mes = mes || hoyISO().slice(0, 7);
+  pantalla('Raciones del mes', `<div class="filtros"><input type="month" id="rm_mes" value="${mes}"></div><div id="rm_l"><p class="muted">Cargando…</p></div>`);
+  $('#rm_mes').onchange = e => racionesVista(e.target.value);
+  try {
+    const r = await api('racionesMes', { mes }, { mudo: true });
+    const tot = r.filas.reduce((a, f) => a + f.total, 0), neto = r.filas.reduce((a, f) => a + f.neto, 0);
+    $('#rm_l').innerHTML = r.filas.length ? `<div class="kpis"><div class="kpi"><small>Raciones del mes</small><b>${n0(tot)}</b></div>${neto ? `<div class="kpi"><small>Neto con precio cargado</small><b>${peso(neto)}</b></div>` : ''}</div>
+      ${r.filas.map(f => `<div class="card"><div style="display:flex;justify-content:space-between"><b>${h(f.servicio)}</b><b>${n0(f.total)}</b></div><small class="muted">${f.dias} días con registro${f.precio ? ` · ${peso(f.precio)} c/u · neto <b>${peso(f.neto)}</b> · con IVA ${peso(f.neto * 1.19)}` : ''}</small>
+      <table class="tabla" style="margin-top:6px">${r.campos.filter(c => f[c.id]).map(c => `<tr><td>${h(c.label)}</td><td class="num">${n0(f[c.id])}</td></tr>`).join('')}</table></div>`).join('')}
+      <p class="muted" style="font-size:13px">Sale del formulario "Raciones servidas y pedidos". Los precios por cliente se ponen en Configuración.</p>
+`
+      : '<div class="card muted centro">No hay raciones registradas este mes. Se registran con el formulario "Raciones servidas y pedidos".</div>';
+    $('#rm_l').insertAdjacentHTML('beforeend', `<div class="card"><h3>📄 Planilla PAE Canela</h3><p class="muted" style="font-size:14px;margin:0 0 10px">Genera la planilla del mes para Los Pozos, Canela Alta y Polivalente con las raciones registradas, lista para revisar, descargar en Excel o PDF y enviar a firma.</p><button class="btn full" onclick="generarPAE('${mes}')">Generar PAE de ${h(mes.split('-').reverse().join('-'))}</button><div id="pae_res"></div></div>`);
+  } catch (e) { $('#rm_l').innerHTML = '<p class="muted">' + h(e.message) + '</p>'; }
+}
+
+/* ═════════════════════ Minutas (menú de hoy) ═════════════════════ */
+function lunesDe(iso) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; }
+function semanaMinuta(iso) {
+  const a = lunesDe(S.config.minutaSem1 || '2026-08-10'), b = lunesDe(iso), n = Math.round((b - a) / 6048e5), c = S.config.minutaCiclo || 4;
+  return ((n % c) + c) % c + 1;
+}
+function menuDe(cli, iso) { const d = (new Date(iso + 'T12:00:00').getDay() + 6) % 7 + 1, s = semanaMinuta(iso); return (S.minutas || []).filter(m => m.c === cli && m.s === s && m.d === d); }
+function clientesMenu() { return [...new Set((S.minutas || []).map(m => m.c))]; }
+function clienteMenuDefault() {
+  const cs = clientesMenu(), sv = norm(S.usuario.servicio || '');
+  return ls.get('menu_cli', '') && cs.includes(ls.get('menu_cli', '')) ? ls.get('menu_cli', '') : cs.find(c => sv && (norm(c).includes(sv) || sv.includes(norm(c).split(' ')[0]))) || cs[0];
+}
+let MN = { cli: '', f: '' };
+function menuVista() {
+  MN.cli = MN.cli || clienteMenuDefault(); MN.f = MN.f || hoyISO();
+  const f = new Date(MN.f + 'T12:00:00'), lista = menuDe(MN.cli, MN.f);
+  const mover = k => { const d = new Date(MN.f + 'T12:00:00'); d.setDate(d.getDate() + k); return ISO(d); };
+  const grupos = []; lista.forEach(x => { const g = x.sv.replace(/ – opción \d/, ''); let G = grupos.find(y => y.g === g); if (!G) grupos.push(G = { g, items: [] }); G.items.push(x); });
+  pantalla('Minutas', `<div class="tabs">${clientesMenu().map(c => `<button class="${c === MN.cli ? 'on' : ''}" onclick="MN.cli='${h(c)}';ls.set('menu_cli',MN.cli);menuVista()">${h(c)}</button>`).join('')}</div>
+    <div class="card" style="padding:10px 12px"><div style="display:flex;align-items:center;justify-content:space-between"><button class="btn gris chico" onclick="MN.f='${mover(-1)}';menuVista()">‹</button>
+    <div class="centro"><b>${h(f.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }))}</b><br><small class="muted">Semana ${semanaMinuta(MN.f)} de la minuta${MN.f === hoyISO() ? ' · hoy' : ''}</small></div>
+    <button class="btn gris chico" onclick="MN.f='${mover(1)}';menuVista()">›</button></div></div>
+    <div class="card menu">${grupos.length ? grupos.map(G => `<div class="sv">${h(G.g)}</div>${G.items.map((x, i) => `<div class="pl">${G.items.length > 1 ? '<b>' + (i + 1) + '.</b> ' : ''}${h(x.p)}</div>`).join('')}`).join('') : '<p class="muted centro">Sin minuta este día (fin de semana o día sin servicio).</p>'}</div>
+    ${esAdmin() ? `<details class="card"><summary>¿La semana no calza?</summary><p class="muted" style="font-size:14px">Indica qué semana de la minuta corresponde a la semana actual y el sistema ajusta el resto.</p><div class="seg">${[1, 2, 3, 4].map(n => `<button class="${semanaMinuta(hoyISO()) === n ? 'on' : ''}" onclick="fijarSemana(${n})">Semana ${n}</button>`).join('')}</div></details>` : ''}`);
+}
+async function fijarSemana(n) {
+  const l = lunesDe(hoyISO()); l.setDate(l.getDate() - (n - 1) * 7); const iso = ISO(l);
+  try { await api('minutaSemana', { lunes: iso }); S.config.minutaSem1 = iso; ls.set('sesion', S); toast('✅ Esta semana quedó como semana ' + n); menuVista(); } catch (e) { toast(e.message); }
+}
+
+/* ═════════════════════ Ventas y merma Take a Food ═════════════════════ */
+function recetasWok() { return [...new Set((S.recetas || []).map(r => r.r))]; }
+let VT = { f: '', datos: [] };
+async function ventasVista() {
+  VT.f = VT.f || hoyISO();
+  const opciones = menuDe(S.config.minutaTAF || 'Menú particulares', VT.f).filter(x => /fondo|hipocal/i.test(x.sv)).map(x => x.p);
+  pantalla('Ventas y merma Take a Food', `<div class="card"><label class="l" style="margin-top:0">Fecha</label><input type="date" id="vt_f" value="${VT.f}">
+    <p class="muted" style="font-size:13px;margin:8px 0 0">Platos del menú del día (semana ${semanaMinuta(VT.f)}). Agrega otros si vendieron algo distinto.</p></div>
+    <div class="card"><table class="tabla vt" id="vt_t"><tr><th>Plato</th><th class="centro">Vendidos</th><th class="centro">Merma</th><th class="centro">Perdidas</th></tr></table>
+    <button class="btn sec chico" style="margin-top:10px" onclick="filaVenta('')">+ Otro plato</button>
+    <p class="muted" style="font-size:12.5px;margin:10px 0 0"><b>Merma:</b> porciones preparadas que no se vendieron. <b>Perdidas:</b> clientes que pidieron y ya no quedaba.</p></div>
+    ${recetasWok().length ? `<div class="card"><h3>🥢 Platos wok</h3><p class="muted" style="font-size:13px;margin:0 0 6px">Lo vendido + la merma descuenta de bodega pechuga, vacuno, cerdo, camarones y soya según el recetario.</p><table class="tabla vt" id="vt_w"><tr><th>Plato</th><th class="centro">Vendidos</th><th class="centro">Merma</th><th class="centro">Perdidas</th></tr>${recetasWok().map(r => `<tr><td><input class="vt_nom" value="${h(r)}" readonly style="max-width:none;text-align:left;background:#F4F7F2;border-color:transparent"></td>${['v', 'm', 'p'].map(k => `<td class="centro"><input class="vt_${k}" type="number" inputmode="numeric" min="0"></td>`).join('')}</tr>`).join('')}</table></div>` : ''}
+    <div id="vt_desc"></div>
+    <h2>Últimas 4 semanas</h2><div id="vt_res" class="card"><p class="muted">Cargando…</p></div>`, { barra: `<button class="btn" onclick="guardarVentas()">Guardar el día</button>` });
+  $('#vt_f').onchange = e => { VT.f = e.target.value; ventasVista(); };
+  try { VT.datos = await api('ventasTAF', { desde: ISO(new Date(new Date(VT.f + 'T12:00:00') - 27 * 864e5)), hasta: VT.f }, { mudo: true }); } catch (e) { VT.datos = []; }
+  const wok = recetasWok().map(norm);
+  const delDia = VT.datos.filter(x => x.fecha === VT.f);
+  delDia.filter(x => wok.includes(norm(x.plato))).forEach(x => { const tr = $$('#vt_w tr').find(t => $('.vt_nom', t) && norm($('.vt_nom', t).value) === norm(x.plato)); if (tr) ['v', 'm', 'p'].forEach(k => $('.vt_' + k, tr).value = x[k] || ''); });
+  const otros = delDia.filter(x => !wok.includes(norm(x.plato)));
+  (otros.length ? otros.map(x => [x.plato, x]) : opciones.map(p => [p, null])).forEach(([p, x]) => filaVenta(p, x));
+  if (!otros.length && !opciones.length) filaVenta('');
+  pintarResumenVentas();
+}
+function filaVenta(plato, x) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td><input class="vt_nom" value="${h(plato)}" placeholder="Plato" style="max-width:none;text-align:left"></td>${['v', 'm', 'p'].map(k => `<td class="centro"><input class="vt_${k}" type="number" inputmode="numeric" min="0" value="${x ? h(x[k]) : ''}"></td>`).join('')}`;
+  $('#vt_t').appendChild(tr);
+}
+async function guardarVentas() {
+  const platos = $$('#vt_t tr, #vt_w tr').filter(tr => $('.vt_nom', tr)).map(tr => ({ plato: $('.vt_nom', tr).value.trim(), v: $('.vt_v', tr).value, m: $('.vt_m', tr).value, p: $('.vt_p', tr).value }));
+  if (!platos.some(p => p.plato && (p.v || p.m || p.p))) return toast('Ingresa al menos un plato con cantidades');
+  try {
+    const r = await api('ventaTAF', { fecha: VT.f, platos }, { txt: 'Guardando…' }); VT.datos = r.ventas; toast('✅ Ventas del día guardadas'); pintarResumenVentas();
+    $('#vt_desc').innerHTML = r.descuento.length ? `<div class="aviso v">📦 Se descontó de bodega por los platos wok: ${r.descuento.map(d => `<b>${h(d.n)}</b> ${n0(d.cant)} ${h(d.u)}`).join(' · ')}</div>` : '';
+    S.stock = null;
+  }
+  catch (e) { toast(e.red ? 'Sin señal: no se guardó, inténtalo de nuevo' : e.message); }
+}
+function pintarResumenVentas() {
+  const por = {}; VT.datos.forEach(x => { const k = x.plato.trim(); const o = por[k] || (por[k] = { plato: k, v: 0, m: 0, p: 0, dias: 0 }); o.v += x.v; o.m += x.m; o.p += x.p; o.dias++; });
+  const l = Object.values(por).sort((a, b) => (b.m + b.p) - (a.m + a.p));
+  const T = l.reduce((a, o) => ({ v: a.v + o.v, m: a.m + o.m, p: a.p + o.p }), { v: 0, m: 0, p: 0 });
+  $('#vt_res').innerHTML = l.length ? `<div class="kpis"><div class="kpi"><small>Vendidos</small><b>${n0(T.v)}</b></div><div class="kpi"><small>Merma</small><b style="color:var(--r)">${n0(T.m)}</b> <small>${T.v + T.m ? Math.round(T.m / (T.v + T.m) * 100) : 0}% de lo preparado</small></div><div class="kpi"><small>Ventas perdidas</small><b style="color:var(--a)">${n0(T.p)}</b></div></div>
+    <div class="scroll"><table class="tabla"><tr><th>Plato</th><th class="num">Vend.</th><th class="num">Merma</th><th class="num">Perd.</th></tr>${l.map(o => `<tr><td>${h(o.plato)}<br><small class="muted">${o.dias} día${o.dias > 1 ? 's' : ''}</small></td><td class="num">${o.v}</td><td class="num" style="color:${o.m ? 'var(--r)' : ''}">${o.m}</td><td class="num" style="color:${o.p ? 'var(--a)' : ''}">${o.p}</td></tr>`).join('')}</table></div>
+    <p class="muted" style="font-size:12.5px">Arriba los platos con más merma y ventas perdidas: conviene preparar menos de los que tienen merma y más de los que se agotan.</p>` : '<p class="muted">Aún no hay registros.</p>';
+}
+
+async function generarPAE(mes) {
+  try {
+    const r = await api('pae', { mes }, { txt: 'Generando planilla…' });
+    $('#pae_res').innerHTML = `<div class="aviso v" style="margin-top:10px">${r.resumen.map(x => `<b>${h(x.nombre)}</b>: ${n0(x.raciones)} raciones en ${x.dias} días`).join('<br>')}</div><a class="btn sec full" target="_blank" href="${h(r.url)}">Abrir la planilla</a><p class="muted" style="font-size:12.5px">En Google Sheets: Archivo → Descargar → Excel o PDF.</p>`;
+    window.open(r.url, '_blank');
+  } catch (e) { toast(e.message); }
+}
+
 /* ═════════════════════ Proveedores ═════════════════════ */
 const DIAS = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
 function diasDe(txt) {
@@ -907,6 +1058,53 @@ function contactosHTML(c) {
       <a class="btn chico sec" style="flex:0 0 auto" href="tel:${h(tel.replace(/[^\d+]/g, ''))}">📞</a>${cel ? `<a class="btn chico" style="flex:0 0 auto" target="_blank" href="https://wa.me/${cel}">WhatsApp</a>` : ''}</div>`;
   }).join('');
 }
+function sugerido(prov) {
+  const b = S.config.bodegas[0];
+  return (S.productos || []).filter(p => p.prov === prov).map(p => {
+    const s = stockDe(b, p.c), st = s ? s.stock : 0;
+    let sug = p.min > 0 && st < p.min * 1.5 ? p.min * 2 - st : 0;
+    sug = p.u === 'kg' || p.u === 'L' ? Math.ceil(sug * 2) / 2 : Math.ceil(sug);
+    return { p, st, sug: Math.max(0, sug) };
+  }).sort((a, b) => b.sug - a.sug || a.p.n.localeCompare(b.p.n));
+}
+let PEDS = [];
+async function pedidoVista(prov) {
+  const pv = (S.proveedores || []).find(x => x.nombre === prov) || { nombre: prov };
+  const l = sugerido(prov);
+  pantalla('Pedido a ' + prov, `<div class="card"><b>${h(prov)}</b><br><small class="muted">Pedido: ${h(pv.pedido || '—')} · Llega: ${h(pv.llegada || '—')}</small>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">Sugerido = lo que falta para llegar al doble del mínimo. Ajusta las cantidades antes de enviar.</p></div>
+    <div class="card"><table class="tabla vt" id="pd_t"><tr><th>Producto</th><th class="num">Hay</th><th class="centro">Pedir</th></tr>
+    ${l.map(x => `<tr data-c="${x.p.c}"><td><b>${h(x.p.n)}</b><br><small class="muted">mín. ${n0(x.p.min)} ${h(x.p.u)}</small></td><td class="num" style="color:${x.p.min && x.st < x.p.min ? 'var(--r)' : ''}">${n0(x.st)}</td><td class="centro"><input class="pd_q" type="number" inputmode="decimal" step="any" value="${x.sug || ''}" placeholder="${h(x.p.u)}"></td></tr>`).join('')}</table>
+    <div class="row" style="margin-top:10px"><input id="pd_otro" list="dl-prod" placeholder="+ Otro producto"><button class="btn sec chico" style="flex:0 0 auto" onclick="otroPedido()">Agregar</button></div></div>
+    <div class="card"><label class="l" style="margin-top:0">Nota para el proveedor <small>(opcional)</small></label><input id="pd_nota" placeholder="Ej: entregar antes de las 11"></div>
+    <h2>Pedidos anteriores</h2><div id="pd_hist" class="card"><p class="muted">Cargando…</p></div>`,
+    { barra: `<button class="btn gris" onclick="enviarPedido('${h(prov)}',false)">Copiar</button><button class="btn" onclick="enviarPedido('${h(prov)}',true)">Enviar por WhatsApp</button>` });
+  try { PEDS = await api('pedidos', { proveedor: prov }, { mudo: true }); } catch (e) { PEDS = []; }
+  $('#pd_hist').innerHTML = PEDS.length ? PEDS.slice(0, 5).map(p => `<div style="padding:8px 0;border-bottom:1px solid #EEF2EF"><b>${fFecha(p.fecha)}</b> <small class="muted">· ${h(p.quien)}</small><br><small style="white-space:pre-line">${h(p.detalle)}</small></div>`).join('') : '<p class="muted">Aún no hay pedidos registrados.</p>';
+}
+function otroPedido() {
+  const p = prodDe($('#pd_otro').value); if (!p) return toast('Elige un producto de la lista');
+  if ($(`#pd_t tr[data-c="${p.c}"]`)) { $(`#pd_t tr[data-c="${p.c}"] .pd_q`).focus(); return; }
+  const s = stockDe(S.config.bodegas[0], p.c);
+  $('#pd_t').insertAdjacentHTML('beforeend', `<tr data-c="${p.c}"><td><b>${h(p.n)}</b></td><td class="num">${n0(s ? s.stock : 0)}</td><td class="centro"><input class="pd_q" type="number" inputmode="decimal" step="any" placeholder="${h(p.u)}"></td></tr>`);
+  $('#pd_otro').value = '';
+}
+async function enviarPedido(prov, wa) {
+  const lineas = $$('#pd_t tr[data-c]').map(tr => { const p = (S.productos || []).find(x => x.c === tr.dataset.c); return { c: p.c, n: p.n, u: p.u, cant: Number($('.pd_q', tr).value) || 0 }; }).filter(l => l.cant > 0);
+  if (!lineas.length) return toast('Pon la cantidad de al menos un producto');
+  const pv = (S.proveedores || []).find(x => x.nombre === prov) || {};
+  const contacto = String(pv.contacto || '').split(';').map(x => x.trim()).find(x => /\+?56\s*9|\b9\s?\d{4}/.test(x)) || '';
+  const nombre = contacto.includes(':') ? contacto.split(':')[0].trim() : '';
+  const cel = (contacto.split(':').pop() || '').replace(/\D/g, '');
+  const nota = $('#pd_nota').value.trim();
+  const txt = `Hola${nombre && !/callcenter|vendedor/i.test(nombre) ? ' ' + nombre.split(' ')[0] : ''}, le escribo de Clean Food (Illapel). Quisiera hacer el siguiente pedido:\n\n${lineas.map(l => `• ${l.n.charAt(0) + l.n.slice(1).toLowerCase()}: ${n0(l.cant)} ${l.u}`).join('\n')}${nota ? '\n\n' + nota : ''}\n\n¿Me confirma por favor la fecha de entrega? Gracias.`;
+  try { await api('pedido', { proveedor: prov, lineas, llega: pv.llegada || '' }, { txt: 'Registrando pedido…' }); } catch (e) { if (!e.red) return toast(e.message); }
+  if (wa && cel) window.open('https://wa.me/' + (cel.length === 9 ? '56' + cel : cel) + '?text=' + encodeURIComponent(txt), '_blank');
+  else { try { await navigator.clipboard.writeText(txt); toast('📋 Pedido copiado. Pégalo en WhatsApp o correo.'); } catch (e) { modal(`<h3>Pedido</h3><textarea style="min-height:220px">${h(txt)}</textarea><button class="btn full" style="margin-top:10px" onclick="cerrarModal()">Listo</button>`); } }
+  if (wa && !cel) toast('Este proveedor no tiene celular registrado: el pedido quedó copiado.');
+  pedidoVista(prov);
+}
+
 function proveedoresVista() {
   const hoy = DIAS[new Date().getDay()];
   const l = (S.proveedores || []).slice().sort((a, b) => (diasDe(b.pedido).has(hoy) - diasDe(a.pedido).has(hoy)) || a.nombre.localeCompare(b.nombre));
@@ -919,6 +1117,7 @@ function proveedoresVista() {
       ${p.productos ? `<p style="margin:8px 0 0;font-size:14px">${h(p.productos)}</p>` : ''}
       <div class="row" style="margin-top:8px;font-size:13.5px"><div><small class="muted">Día de pedido</small><br><b>${h(p.pedido || '—')}</b></div><div><small class="muted">Llega</small><br><b>${h(p.llegada || '—')}</b></div></div>
       ${contactosHTML(p.contacto)}
+      <button class="btn full" style="margin-top:10px" onclick="ir(pedidoVista,'${h(p.nombre)}')">🛒 Armar pedido${(() => { const n = sugerido(p.nombre).filter(x => x.sug > 0).length; return n ? ` <span class="badge" style="background:rgba(255,255,255,.25);color:#fff">${n} bajo mínimo</span>` : ''; })()}</button>
       ${prods.length ? `<details style="margin-top:8px"><summary>${prods.length} productos en el sistema</summary><small>${prods.map(x => { const s = stockDe(S.config.bodegas[0], x.c); return h(x.n) + (s ? ' — ' + n0(s.stock) + ' ' + h(x.u) + (s.estado !== 'OK' ? ' ⚠' : '') : ''); }).join('<br>')}</small></details>` : ''}</div>`;
     }).join('') || '<p class="muted">Sin proveedores.</p>';
   };
@@ -1094,6 +1293,7 @@ function configVista() {
     ${campo('motivos_salida', 'Motivos de salida', 'separados por coma')}
     ${campo('equipos_frio', 'Equipos de frío', 'Nombre|mín|máx, separados por coma')}
     ${campo('vehiculos', 'Patentes de vehículos', 'separadas por coma', false)}
+    ${campo('precios_raciones', 'Precio neto por ración', 'Cliente|precio, separados por coma')}
     <div class="row"><div>${campo('dias_aviso_venc', 'Avisar vencimiento de productos', 'días antes', false)}</div><div>${campo('dias_aviso_docs', 'Avisar vencimiento de documentos', 'días antes', false)}</div></div>
     ${campo('color', 'Color de la app', 'ej: #1F7A4D', false)}
     <div class="aviso" style="margin-top:14px">Si cambias el nombre de una bodega, el stock ya registrado queda con el nombre anterior. Mejor agrega bodegas nuevas al final.</div>
