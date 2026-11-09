@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clean Food · Bodega y Prevención</title>
+<meta name="theme-color" content="#1F7A4D">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="config.js"></script>
+<style>
+:root{--v:#1F7A4D;--v2:#E8F4EC;--t:#17211B;--g:#5E6B63;--b:#DDE5E0;--f:#F5F7F5;--r:#C62828;--r2:#FDECEA;--a:#B26A00;--a2:#FFF4E0;--ok:#2E7D32;--w:#fff;--rad:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--f);color:var(--t);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:5;background:var(--v);color:#fff;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;display:flex;align-items:center;gap:10px}
+header .tit{flex:1;min-width:0}
+header .tit b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header .tit small{opacity:.85;font-size:13px}
+header button{background:rgba(255,255,255,.16);border:0;color:#fff;border-radius:10px;padding:8px 11px;font-size:15px}
+main{max-width:860px;margin:0 auto;padding:14px 14px 110px}
+h2{font-size:15px;color:var(--g);text-transform:uppercase;letter-spacing:.04em;margin:22px 2px 10px}
+h3{margin:0 0 8px;font-size:17px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.tile{background:var(--w);border:1px solid var(--b);border-radius:var(--rad);padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-height:92px}
+.tile .i{font-size:26px}
+.tile b{font-size:15px;line-height:1.2}
+.tile small{color:var(--g);font-size:12.5px}
+.tile.dest{background:var(--v);color:#fff;border-color:var(--v)}
+.tile.dest small{color:#d7eee0}
+.card{background:var(--w);border:1px solid var(--b);border-radius:var(--rad);padding:14px;margin-bottom:12px}
+label.l{display:block;font-weight:600;font-size:14.5px;margin:12px 0 5px}
+label.l small{font-weight:400;color:var(--g)}
+input,select,textarea{width:100%;border:1px solid #C9D3CD;border-radius:10px;padding:11px 12px;background:#fff;font-size:16px}
+textarea{min-height:76px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--v);border-color:var(--v)}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row>*{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:13px 16px;background:var(--v);color:#fff;font-weight:600;cursor:pointer;font-size:16px}
+.btn.sec{background:var(--v2);color:var(--v)}
+.btn.gris{background:#EEF1EF;color:var(--t)}
+.btn.rojo{background:var(--r2);color:var(--r)}
+.btn.chico{padding:8px 11px;font-size:14px;border-radius:10px}
+.btn.full{width:100%}
+.btn:disabled{opacity:.5}
+.barra{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.96);border-top:1px solid var(--b);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:6}
+.barra .in{max-width:860px;margin:0 auto;display:flex;gap:8px}
+.barra .btn{flex:1}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid #C9D3CD;background:#fff;border-radius:10px;padding:8px 14px;min-width:54px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--v);border-color:var(--v);color:#fff}
+.seg button.on.mal{background:var(--r);border-color:var(--r)}
+.ck{padding:10px 0;border-bottom:1px solid #EEF1EF}
+.ck:last-child{border-bottom:0}
+.ck p{margin:0 0 7px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid #C9D3CD;background:#fff;border-radius:20px;padding:8px 12px;font-size:14px;cursor:pointer;text-align:left}
+.chip.on{background:var(--v2);border-color:var(--v);color:var(--v);font-weight:600}
+.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.b-ok{background:#E3F2E7;color:var(--ok)}.b-r{background:var(--r2);color:var(--r)}.b-a{background:var(--a2);color:var(--a)}.b-g{background:#EEF1EF;color:var(--g)}
+.aviso{background:var(--a2);border:1px solid #F3D19C;color:#6B4300;border-radius:12px;padding:12px;margin:10px 0;font-size:14.5px}
+.aviso.r{background:var(--r2);border-color:#F2B8B5;color:#7F1D1D}
+.aviso.v{background:var(--v2);border-color:#BFDCC9;color:#174D33}
+.lista .it{display:flex;gap:10px;align-items:center;padding:11px 2px;border-bottom:1px solid #EEF1EF}
+.lista .it:last-child{border-bottom:0}
+.lista .it .c{flex:1;min-width:0}
+.lista .it .c b{display:block;font-size:15px}
+.lista .it .c small{color:var(--g);font-size:13px}
+.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.num b{font-size:17px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.kpi{background:var(--w);border:1px solid var(--b);border-radius:var(--rad);padding:12px}
+.kpi small{color:var(--g);font-size:12.5px;display:block}
+.kpi b{font-size:22px}
+.item{border:1px solid var(--b);border-radius:12px;padding:12px;margin-bottom:10px;background:#FBFCFB}
+.item.rech{background:var(--r2);border-color:#F2B8B5}
+.item .fac{font-size:13px;color:var(--g);margin-bottom:6px;background:#EEF1EF;border-radius:8px;padding:6px 8px}
+.item .sug{color:var(--a);font-size:12.5px;font-weight:600}
+.x{flex:0 0 auto!important;background:none;border:0;font-size:20px;color:var(--g);cursor:pointer;padding:2px 6px}
+.fotos{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.fotos img{width:78px;height:78px;object-fit:cover;border-radius:10px;border:1px solid var(--b)}
+.firma{border:1.5px dashed #9FB0A6;border-radius:12px;background:#fff;width:100%;height:170px;touch-action:none;display:block}
+.tabla{width:100%;border-collapse:collapse;font-size:14px}
+.tabla th,.tabla td{padding:8px 6px;border-bottom:1px solid #EEF1EF;text-align:left;vertical-align:top}
+.tabla th{font-size:12.5px;color:var(--g);font-weight:600}
+.scroll{overflow-x:auto}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#17211B;color:#fff;padding:12px 18px;border-radius:12px;z-index:50;max-width:90vw;font-size:15px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.modal .box{background:#fff;width:100%;max-width:620px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.modal{align-items:center}.modal .box{border-radius:18px}}
+.cargando{position:fixed;inset:0;background:rgba(245,247,245,.75);z-index:60;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--g)}
+.spin{width:38px;height:38px;border:4px solid var(--v2);border-top-color:var(--v);border-radius:50%;animation:g 1s linear infinite}
+@keyframes g{to{transform:rotate(360deg)}}
+.login{max-width:380px;margin:9vh auto 0;padding:0 18px}
+.logo{width:76px;height:76px;border-radius:20px;background:var(--v);display:flex;align-items:center;justify-content:center;color:#fff;font-size:38px;margin:0 auto 14px}
+.centro{text-align:center}
+.muted{color:var(--g);font-size:14px}
+.cola{background:var(--a2);color:#6B4300;padding:9px 14px;font-size:14px;text-align:center;cursor:pointer}
+.oculto{display:none!important}
+details summary{cursor:pointer;font-weight:600;padding:4px 0}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.filtros>*{flex:1;min-width:130px}
+a{color:var(--v)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<datalist id="dl-prod"></datalist>
+<datalist id="dl-prov"></datalist>
+<input type="file" id="xmlFile" accept=".xml,text/xml,application/xml" class="oculto">
+
+<script>
+'use strict';
+/* ═════════════════════ Núcleo ═════════════════════ */
+const API = (window.CLEANFOOD_API || '').trim();
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const n0 = x => Number(x || 0).toLocaleString('es-CL', { maximumFractionDigits: 3 });
+const peso = x => '$' + Math.round(Number(x || 0)).toLocaleString('es-CL');
+const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const fFecha = s => s ? String(s).slice(0, 10).split('-').reverse().join('-') + (String(s).length > 10 ? ' ' + String(s).slice(11, 16) : '') : '';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const ls = { get(k, d) { try { const v = localStorage.getItem('cf_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cf_' + k, JSON.stringify(v)); } catch (e) { } }, del(k) { try { localStorage.removeItem('cf_' + k); } catch (e) { } } };
+
+let S = ls.get('sesion', null); // {token, usuario, ...datos de inicio}
+let pila = []; // historial de pantallas
+const ROLES = { admin: 'Administración', bodega: 'Bodega', cocina: 'Cocina', atencion: 'Atención / servicio', chofer: 'Chofer' };
+
+function toast(t, ms = 3200) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), ms); }
+function cargando(on, txt) {
+  let d = $('#cargando');
+  if (on) { if (!d) { d = document.createElement('div'); d.id = 'cargando'; d.className = 'cargando'; document.body.appendChild(d); } d.innerHTML = '<div class="spin"></div><div>' + h(txt || 'Cargando…') + '</div>'; }
+  else if (d) d.remove();
+}
+
+async function api(accion, datos = {}, opt = {}) {
+  if (!API || API.indexOf('PEGA_AQUI') >= 0) throw new Error('Falta configurar el enlace del sistema en config.js');
+  if (!opt.mudo) cargando(true, opt.txt);
+  try {
+    const res = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ accion, token: S && S.token, ...datos }), redirect: 'follow' });
+    const j = await res.json();
+    if (!j.ok) {
+      if (j.error === 'SESION') { salir(true); throw new Error('Tu sesión expiró. Vuelve a entrar.'); }
+      const e = new Error(j.error); e.servidor = true; throw e;
+    }
+    return j.data;
+  } catch (e) {
+    if (!e.servidor && !/sesión/.test(e.message) && !/config\.js/.test(e.message)) e.red = true;
+    throw e;
+  } finally { if (!opt.mudo) cargando(false); }
+}
+
+/* Cola sin señal: recepciones, salidas y formularios se guardan en el teléfono y se envían solos. */
+const cola = { get: () => ls.get('cola', []), set: c => { ls.set('cola', c); pintarCola(); } };
+async function enviarOEncolar(accion, datos, desc) {
+  datos.uid = datos.uid || uid();
+  try { return await api(accion, datos, { txt: 'Enviando…' }); }
+  catch (e) {
+    if (!e.red) throw e;
+    const c = cola.get(); c.push({ accion, datos, desc, t: Date.now() }); cola.set(c);
+    return { enCola: true };
+  }
+}
+let enviando = false;
+async function vaciarCola() {
+  if (enviando || !S) return; const c = cola.get(); if (!c.length) return;
+  enviando = true; const quedan = [];
+  for (const x of c) {
+    try { const r = await api(x.accion, x.datos, { mudo: true }); if (r && r.stock) S.stock = r.stock; }
+    catch (e) { if (e.red) quedan.push(x); else { quedan.push({ ...x, error: e.message }); } }
+  }
+  enviando = false; cola.set(quedan);
+  if (c.length > quedan.length) toast('✅ Se enviaron ' + (c.length - quedan.length) + ' registros guardados sin señal');
+}
+function pintarCola() {
+  const el = $('#colaBar'); if (!el) return; const c = cola.get();
+  el.classList.toggle('oculto', !c.length);
+  el.textContent = c.some(x => x.error) ? '⚠ Hay registros con error sin enviar. Toca para ver.' : '📶 ' + c.length + ' registro(s) guardados en el teléfono. Se enviarán con señal (toca para reintentar).';
+}
+window.addEventListener('online', vaciarCola);
+setInterval(vaciarCola, 60000);
+
+/* ═════════════════════ Navegación ═════════════════════ */
+function ir(fn, ...args) { pila.push([fn, args]); fn(...args); window.scrollTo(0, 0); history.pushState({ n: pila.length }, ''); }
+function atras() { if (pila.length > 1) { pila.pop(); const [fn, args] = pila[pila.length - 1]; fn(...args); window.scrollTo(0, 0); } else inicio(); }
+window.addEventListener('popstate', () => { if (pila.length > 1) atras(); });
+function pantalla(titulo, html, opts = {}) {
+  const u = S.usuario;
+  $('#app').innerHTML = `
+  <header>
+    ${opts.home ? '<div style="font-size:26px">🥗</div>' : '<button onclick="history.back()" aria-label="Volver">←</button>'}
+    <div class="tit"><b>${h(titulo)}</b><small>${h(opts.sub || (u.nombre + ' · ' + (ROLES[u.rol] || u.rol)))}</small></div>
+    ${opts.home ? '<button onclick="ir(perfil)">👤</button>' : '<button onclick="pila=[];inicio()">⌂</button>'}
+  </header>
+  <div id="colaBar" class="cola oculto" onclick="verCola()"></div>
+  <main>${html}</main>
+  ${opts.barra ? '<div class="barra"><div class="in">' + opts.barra + '</div></div>' : ''}`;
+  pintarCola();
+}
+function verCola() {
+  const c = cola.get();
+  modal(`<h3>Pendientes de enviar</h3>${c.map((x, i) => `<div class="card"><b>${h(x.desc)}</b><br><small class="muted">${new Date(x.t).toLocaleString('es-CL')}</small>${x.error ? `<div class="aviso r">${h(x.error)}</div><button class="btn chico rojo" onclick="borrarCola(${i})">Descartar</button>` : ''}</div>`).join('')}
+  <button class="btn full" onclick="cerrarModal();vaciarCola()">Reintentar ahora</button>`);
+}
+function borrarCola(i) { const c = cola.get(); c.splice(i, 1); cola.set(c); cerrarModal(); }
+function modal(html) { cerrarModal(); const d = document.createElement('div'); d.className = 'modal'; d.id = 'modal'; d.innerHTML = '<div class="box">' + html + '</div>'; d.onclick = e => { if (e.target === d) cerrarModal(); }; document.body.appendChild(d); }
+function cerrarModal() { const m = $('#modal'); if (m) m.remove(); }
+
+/* ═════════════════════ Ingreso ═════════════════════ */
+function login() {
+  $('#app').innerHTML = `<div class="login">
+    <div class="logo">🥗</div>
+    <h2 class="centro" style="text-transform:none;font-size:22px;color:var(--t);letter-spacing:0;margin:0 0 4px">Clean Food</h2>
+    <p class="centro muted" style="margin:0 0 24px">Bodega · Inocuidad · Prevención</p>
+    <div class="card">
+      <label class="l">RUT</label><input id="rut" autocomplete="username" placeholder="12.345.678-9" value="${h(ls.get('ultRut', ''))}">
+      <label class="l">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••">
+      <button class="btn full" style="margin-top:16px" onclick="entrar()">Entrar</button>
+      <p class="muted centro" style="margin:12px 0 0;font-size:13px">La primera vez tu PIN son los 4 primeros números de tu RUT.</p>
+    </div></div>`;
+  $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') entrar(); });
+}
+async function entrar() {
+  const rut = $('#rut').value.trim(), pin = $('#pin').value.trim();
+  if (!rut || !pin) return toast('Escribe tu RUT y PIN');
+  try { S = await api('login', { rut, pin }, { txt: 'Entrando…' }); ls.set('sesion', S); ls.set('ultRut', rut); pila = []; inicio(); vaciarCola(); }
+  catch (e) { toast(e.red ? 'Sin conexión. Para entrar la primera vez necesitas señal.' : e.message); }
+}
+function salir(silencioso) { S = null; ls.del('sesion'); pila = []; login(); if (!silencioso) toast('Sesión cerrada'); }
+
+async function refrescar(mudo) {
+  try { const d = await api('inicio', {}, { mudo }); S = { ...S, ...d }; ls.set('sesion', S); prepararListas(); return true; }
+  catch (e) { if (!mudo) toast(e.red ? 'Sin señal: se muestran los últimos datos guardados' : e.message); return false; }
+}
+function prepararListas() {
+  if (!S) return;
+  document.documentElement.style.setProperty('--v', S.config.color || '#1F7A4D');
+  $('#dl-prod').innerHTML = (S.productos || []).map(p => `<option value="${h(p.n + ' · ' + p.c)}">`).join('');
+  $('#dl-prov').innerHTML = (S.proveedores || []).map(p => `<option value="${h(p.nombre)}">${h(p.rut)}</option>`).join('');
+}
+const esAdmin = () => S.usuario.rol === 'admin';
+const esBodega = () => S.usuario.rol === 'admin' || S.usuario.rol === 'bodega';
+const prodDe = txt => { const m = String(txt || '').match(/·\s*([A-Z]{2,4}-\d+)\s*$/); return m ? (S.productos || []).find(p => p.c === m[1]) : (S.productos || []).find(p => p.n.toUpperCase() === String(txt || '').trim().toUpperCase()); };
+const etiquetaProd = p => p ? p.n + ' · ' + p.c : '';
+
+/* ═════════════════════ Inicio ═════════════════════ */
+function inicio() {
+  if (!S) return login();
+  if (!pila.length) pila = [[inicio, []]];
+  prepararListas();
+  const u = S.usuario, f = S.forms || [];
+  const grupos = {};
+  f.forEach(x => (grupos[x.grupo] = grupos[x.grupo] || []).push(x));
+  const tile = (onclick, i, t, s, cls = '') => `<button class="tile ${cls}" onclick="${onclick}"><span class="i">${i}</span><b>${h(t)}</b>${s ? '<small>' + h(s) + '</small>' : ''}</button>`;
+  const docsMal = (S.misDocumentos || []).filter(d => d.estado === 'Vencido' || d.estado === 'Por vencer');
+  let html = `<p style="margin:2px 2px 0">Hola, <b>${h(u.nombre.split(' ')[0])}</b> 👋</p>`;
+  if (docsMal.length) html += `<div class="aviso">${docsMal.map(d => `⏰ <b>${h(d.tipo)}</b>: ${d.dv < 0 ? 'vencido el ' : 'vence el '}${fFecha(d.venc)}`).join('<br>')}</div>`;
+  if (esBodega()) {
+    html += `<h2>Bodega y stock</h2><div class="grid">
+      ${tile("ir(recepcion)", '📥', 'Recepción de mercadería', 'Factura o guía + checklist', 'dest')}
+      ${tile("ir(salida,'')", '📤', 'Salida de bodega', 'Consumo, despacho, merma')}
+      ${tile("ir(stockVista)", '📦', 'Stock en línea', 'Por bodega y vencimientos')}
+      ${tile("ir(salida,'traspaso')", '🔁', 'Traspaso entre bodegas', 'Ej: central → Take a Food')}
+      ${esAdmin() ? tile("ir(inventario)", '🧮', 'Inventario físico', 'Contar y cuadrar') : ''}
+      ${tile("ir(productosVista)", '🏷️', 'Productos', 'Crear y editar')}
+    </div>`;
+  }
+  const ordenG = ['Inocuidad', 'Servicio', 'Prevención'];
+  Object.keys(grupos).sort((a, b) => ordenG.indexOf(a) - ordenG.indexOf(b)).forEach(g => {
+    html += `<h2>${h(g === 'Inocuidad' ? 'Inocuidad y cocina' : g === 'Servicio' ? 'Servicio' : 'Prevención de riesgos')}</h2><div class="grid">${grupos[g].map(x => tile(`ir(formulario,'${x.id}')`, x.icono, x.titulo, '')).join('')}</div>`;
+  });
+  if (esAdmin()) {
+    html += `<h2>Administración</h2><div class="grid">
+      ${tile("ir(resumenVista)", '📊', 'Resumen del día', 'Alertas y registros', 'dest')}
+      ${tile("ir(registrosVista)", '🗂️', 'Registros', 'Formularios enviados')}
+      ${tile("ir(movimientosVista)", '📒', 'Movimientos', 'Entradas y salidas')}
+      ${tile("ir(recepcionesVista)", '🧾', 'Recepciones', 'Facturas recibidas')}
+      ${tile("ir(documentosVista)", '📑', 'Permisos y cursos', 'Sanitarios, vehículos, faena')}
+      ${tile("ir(trabajadoresVista)", '👥', 'Trabajadores', 'Accesos y cargos')}
+      ${tile("ir(configVista)", '⚙️', 'Configuración', 'Bodegas, servicios, equipos')}
+      ${tile("abrirPlanilla()", '📗', 'Abrir planilla', 'Google Sheets')}
+    </div>`;
+  }
+  html += `<h2>Mi cuenta</h2><div class="grid">${tile("ir(perfil)", '👤', 'Mi perfil', 'Mis registros, cursos y PIN')}</div>
+  <p class="muted centro" style="margin-top:26px;font-size:12px">${h(S.config.empresa)} · ${h(S.version || '')}</p>`;
+  pantalla(S.config.empresa, html, { home: true });
+  refrescarSilencioso();
+}
+let ultRefresco = 0;
+function refrescarSilencioso() { if (Date.now() - ultRefresco < 60000) return; ultRefresco = Date.now(); refrescar(true).then(ok => { if (ok) prepararListas(); }); vaciarCola(); }
+async function abrirPlanilla() { try { const r = await api('planilla'); window.open(r.url, '_blank'); } catch (e) { toast(e.message); } }
+
+/* ═════════════════════ Helpers de formularios ═════════════════════ */
+function checklistHTML(id, items, valores = []) {
+  return items.map((it, k) => {
+    const v = valores[k] || '';
+    const ops = ['Sí', 'No'].concat(it.na ? ['N/A'] : []);
+    return `<div class="ck"><p>${h(it.t)}</p><div class="seg" data-ck="${id}" data-k="${k}" data-ok="${h(it.ok)}">${ops.map(o => `<button type="button" class="${v === o ? 'on' + (o !== it.ok && o !== 'N/A' ? ' mal' : '') : ''}" onclick="marcar(this)">${o}</button>`).join('')}</div></div>`;
+  }).join('');
+}
+function marcar(b) {
+  const seg = b.parentNode; $$('button', seg).forEach(x => x.className = '');
+  b.className = 'on' + (b.textContent !== seg.dataset.ok && b.textContent !== 'N/A' ? ' mal' : '');
+}
+function leerChecklist(id) { return $$(`[data-ck="${id}"]`).map(seg => { const on = $('button.on', seg); return on ? on.textContent : ''; }); }
+
+function comprimir(file, max = 1280, q = .72) {
+  return new Promise((ok, mal) => {
+    const fr = new FileReader();
+    fr.onload = () => { const img = new Image(); img.onload = () => { const k = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', q)); }; img.onerror = mal; img.src = fr.result; };
+    fr.onerror = mal; fr.readAsDataURL(file);
+  });
+}
+const FOTOS = {};
+function fotoHTML(id, multiple) {
+  FOTOS[id] = FOTOS[id] || [];
+  return `<label class="btn sec chico" style="display:inline-flex">📷 ${multiple ? 'Agregar fotos' : 'Tomar foto'}<input type="file" accept="image/*" ${multiple ? 'multiple' : 'capture="environment"'} class="oculto" onchange="agregarFoto('${id}',this)"></label><div class="fotos" id="fotos-${id}">${FOTOS[id].map((f, i) => `<img src="${f}" onclick="quitarFoto('${id}',${i})">`).join('')}</div>`;
+}
+async function agregarFoto(id, inp) {
+  for (const f of inp.files) { try { FOTOS[id].push(await comprimir(f)); } catch (e) { toast('No se pudo leer la foto'); } }
+  inp.value = ''; $('#fotos-' + id).innerHTML = FOTOS[id].map((f, i) => `<img src="${f}" onclick="quitarFoto('${id}',${i})">`).join('');
+}
+function quitarFoto(id, i) { if (confirm('¿Quitar esta foto?')) { FOTOS[id].splice(i, 1); $('#fotos-' + id).innerHTML = FOTOS[id].map((f, j) => `<img src="${f}" onclick="quitarFoto('${id}',${j})">`).join(''); } }
+
+const FIRMAS = {};
+function firmaHTML(id) { return `<canvas class="firma" id="firma-${id}"></canvas><button type="button" class="btn gris chico" style="margin-top:6px" onclick="limpiarFirma('${id}')">Borrar firma</button>`; }
+function activarFirma(id) {
+  const c = $('#firma-' + id); if (!c) return;
+  const r = c.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  c.width = r.width * dpr; c.height = r.height * dpr;
+  const x = c.getContext('2d'); x.scale(dpr, dpr); x.lineWidth = 2.4; x.lineCap = 'round'; x.strokeStyle = '#17211B';
+  let dib = false; FIRMAS[id] = false;
+  const p = e => { const b = c.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  c.onpointerdown = e => { dib = true; c.setPointerCapture(e.pointerId); x.beginPath(); x.moveTo(...p(e)); };
+  c.onpointermove = e => { if (!dib) return; x.lineTo(...p(e)); x.stroke(); FIRMAS[id] = true; };
+  c.onpointerup = c.onpointercancel = () => dib = false;
+}
+function limpiarFirma(id) { const c = $('#firma-' + id); c.getContext('2d').clearRect(0, 0, c.width, c.height); FIRMAS[id] = false; }
+function leerFirma(id) {
+  if (!FIRMAS[id]) return '';
+  const c = $('#firma-' + id), o = document.createElement('canvas'); const k = Math.min(1, 600 / c.width);
+  o.width = c.width * k; o.height = c.height * k; const x = o.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, o.width, o.height); x.drawImage(c, 0, 0, o.width, o.height);
+  return o.toDataURL('image/jpeg', .8);
+}
+function selectHTML(id, ops, val, vacio = 'Seleccionar…') { return `<select id="${id}"><option value="">${h(vacio)}</option>${ops.map(o => `<option ${o === val ? 'selected' : ''}>${h(o)}</option>`).join('')}</select>`; }
+function bodegaSel(id, val) { const b = S.config.bodegas || []; return `<select id="${id}">${b.map(x => `<option ${x === val ? 'selected' : ''}>${h(x)}</option>`).join('')}</select>`; }
+
+/* ═════════════════════ Formularios del rubro (se dibujan desde Code.gs) ═════════════════════ */
+function formulario(fid) {
+  const f = S.forms.find(x => x.id === fid); if (!f) return inicio();
+  const borr = ls.get('borrador_' + fid, {});
+  const campo = c => {
+    const lab = c.label ? `<label class="l">${h(c.label)}${c.opcional ? ' <small>(opcional)</small>' : ''}${c.ayuda ? ' <small>· ' + h(c.ayuda) + '</small>' : ''}</label>` : '';
+    const v = borr[c.id];
+    switch (c.tipo) {
+      case 'aviso': return `<div class="aviso r">${h(c.texto)}</div>`;
+      case 'servicio': return lab + selectHTML('f_' + c.id, S.config.servicios, v || S.usuario.servicio);
+      case 'select': return lab + selectHTML('f_' + c.id, c.opciones, v);
+      case 'vehiculo': return lab + (S.config.vehiculos.length ? selectHTML('f_' + c.id, S.config.vehiculos, v) : `<input id="f_${c.id}" value="${h(v || '')}" placeholder="Ej: ABCD12" style="text-transform:uppercase">`);
+      case 'trabajador': return lab + selectHTML('f_' + c.id, (S.trabajadores || []).map(t => t.nombre), v);
+      case 'text': return lab + `<input id="f_${c.id}" value="${h(v || '')}">`;
+      case 'textarea': return lab + `<textarea id="f_${c.id}">${h(v || '')}</textarea>`;
+      case 'number': return lab + `<input id="f_${c.id}" type="number" inputmode="decimal" value="${h(v || '')}">`;
+      case 'date': return lab + `<input id="f_${c.id}" type="date" value="${h(v || hoyISO())}">`;
+      case 'time': return lab + `<input id="f_${c.id}" type="time" value="${h(v || new Date().toTimeString().slice(0, 5))}">`;
+      case 'temp': return lab + `<input id="f_${c.id}" type="number" inputmode="decimal" step="0.1" value="${h(v ?? '')}" placeholder="°C" oninput="marcarTemp(this,${c.min ?? 'null'},${c.max ?? 'null'})">`;
+      case 'equipos': return lab + (S.config.equipos || []).map((e, k) => `<div class="row" style="align-items:center;margin-bottom:6px"><div>${h(e.n)}<br><small class="muted">${e.min} a ${e.max} °C</small></div><input style="max-width:120px" type="number" inputmode="decimal" step="0.1" data-eq="${k}" value="${h(((v || [])[k] || {}).t ?? '')}" placeholder="°C" oninput="marcarTemp(this,${e.min},${e.max})"></div>`).join('');
+      case 'check': return lab + `<div>${checklistHTML('f_' + c.id, c.items, v)}</div>`;
+      case 'multi': return lab + `<div class="chips" id="f_${c.id}">${c.opciones.map(o => `<button type="button" class="chip ${(v || []).includes(o) ? 'on' : ''}" onclick="this.classList.toggle('on')">${h(o)}</button>`).join('')}</div>`;
+      case 'foto': FOTOS['f_' + c.id] = []; return lab + fotoHTML('f_' + c.id, c.multiple);
+      case 'firma': return lab + firmaHTML('f_' + c.id);
+      default: return '';
+    }
+  };
+  pantalla(f.titulo, `${f.desc ? '<p class="muted" style="margin:0 2px 10px">' + h(f.desc) + '</p>' : ''}${f.confidencial ? '<div class="aviso v">🔒 Esta denuncia es confidencial: solo la recibe la administración. Tienes derecho a no sufrir represalias.</div>' : ''}<div class="card" id="frm">${f.campos.map(campo).join('')}</div>`,
+    { barra: `<button class="btn gris" onclick="guardarBorrador('${fid}')">Guardar borrador</button><button class="btn" onclick="enviarFormulario('${fid}')">Enviar</button>` });
+  f.campos.filter(c => c.tipo === 'firma').forEach(c => activarFirma('f_' + c.id));
+  $$('#frm input[oninput]').forEach(i => i.oninput && i.oninput());
+}
+function marcarTemp(inp, min, max) {
+  const v = inp.value === '' ? null : Number(inp.value);
+  const mal = v !== null && ((min !== null && v < min) || (max !== null && v > max));
+  inp.style.borderColor = mal ? 'var(--r)' : ''; inp.style.background = mal ? 'var(--r2)' : '';
+}
+function leerFormulario(f) {
+  const d = {}, faltan = [];
+  f.campos.forEach(c => {
+    const el = $('#f_' + c.id);
+    switch (c.tipo) {
+      case 'aviso': return;
+      case 'check': d[c.id] = leerChecklist('f_' + c.id); if (d[c.id].some(x => !x)) faltan.push(c.label); break;
+      case 'equipos': d[c.id] = (S.config.equipos || []).map((e, k) => ({ n: e.n, min: e.min, max: e.max, t: $(`[data-eq="${k}"]`).value })); if (d[c.id].some(e => e.t === '')) faltan.push(c.label); break;
+      case 'multi': d[c.id] = $$('.chip.on', el).map(b => b.textContent); if (!d[c.id].length && !c.opcional) faltan.push(c.label); break;
+      case 'foto': d[c.id] = FOTOS['f_' + c.id] || []; break;
+      case 'firma': d[c.id] = leerFirma('f_' + c.id); if (!d[c.id] && !c.opcional) faltan.push(c.label); break;
+      case 'vehiculo': d[c.id] = el.value.trim().toUpperCase(); if (!d[c.id]) faltan.push(c.label); break;
+      default: d[c.id] = el ? el.value.trim() : ''; if (!d[c.id] && !c.opcional && c.tipo !== 'textarea') faltan.push(c.label);
+    }
+  });
+  return { d, faltan };
+}
+function guardarBorrador(fid) {
+  const f = S.forms.find(x => x.id === fid); const { d } = leerFormulario(f);
+  f.campos.forEach(c => { if (c.tipo === 'foto' || c.tipo === 'firma') delete d[c.id]; });
+  ls.set('borrador_' + fid, d); toast('💾 Borrador guardado en este teléfono');
+}
+async function enviarFormulario(fid) {
+  const f = S.forms.find(x => x.id === fid); const { d, faltan } = leerFormulario(f);
+  if (faltan.length) return toast('Falta completar: ' + faltan.join(', '), 4500);
+  try {
+    const r = await enviarOEncolar('formulario', { form: fid, datos: d }, f.titulo);
+    ls.del('borrador_' + fid);
+    if (r.enCola) { modal(`<h3>📶 Guardado en el teléfono</h3><p>No hay señal. Se enviará solo cuando vuelva la conexión.</p><button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`); return; }
+    const malo = r.observaciones && r.observaciones.length;
+    modal(`<h3>${malo ? '⚠️' : '✅'} ${h(r.resultado)}</h3>${malo ? `<div class="aviso r">${r.observaciones.map(h).join('<br>')}</div><p class="muted">Se avisó a la administración.</p>` : '<p>Registro enviado correctamente.</p>'}${fid === 'manipulador' && /NO APTO/.test(r.resultado) ? '<div class="aviso r"><b>No manipules alimentos hoy.</b> Avisa a tu jefatura para que te asigne otra tarea.</div>' : ''}${fid === 'vehiculo' && malo ? '<div class="aviso r"><b>No salgas a ruta</b> hasta corregir lo observado y avisar a tu jefatura.</div>' : ''}<button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`);
+  } catch (e) { toast(e.message, 5000); }
+}
+
+/* ═════════════════════ Recepción de mercadería ═════════════════════ */
+let REC = null;
+function nuevaRecepcion() { return { cab: { bodega: ls.get('bodega', S.config.bodegas[0]), tipo: 'Factura', fecha: hoyISO(), proveedor: '', rut: '', folio: '', monto: '', temp: '', obs: '' }, items: [], check: [] }; }
+function recepcion() {
+  REC = REC || ls.get('rec_borrador', null) || nuevaRecepcion();
+  FOTOS.rec = FOTOS.rec || [];
+  const c = REC.cab;
+  pantalla('Recepción de mercadería', `
+  <div class="card">
+    <button class="btn sec full" onclick="$('#xmlFile').click()">📄 Cargar factura electrónica (XML)</button>
+    <p class="muted" style="margin:8px 0 0;font-size:13px">El XML llega en el correo del proveedor o se descarga del SII. Llena solo el proveedor, el folio y los productos. Si no lo tienes, ingresa a mano.</p>
+  </div>
+  <div class="card">
+    <h3>1. Documento</h3>
+    <label class="l">Bodega que recibe</label>${bodegaSel('r_bodega', c.bodega)}
+    <label class="l">Proveedor</label><input id="r_proveedor" list="dl-prov" value="${h(c.proveedor)}" onchange="provElegido(this)">
+    <div class="row"><div><label class="l">RUT proveedor</label><input id="r_rut" value="${h(c.rut)}"></div><div><label class="l">Tipo</label>${selectHTML('r_tipo', ['Factura', 'Guía de despacho', 'Boleta', 'Sin documento'], c.tipo, '—')}</div></div>
+    <div class="row"><div><label class="l">N° / folio</label><input id="r_folio" inputmode="numeric" value="${h(c.folio)}"></div><div><label class="l">Fecha doc.</label><input id="r_fecha" type="date" value="${h(c.fecha)}"></div></div>
+    <label class="l">Monto total <small>(opcional)</small></label><input id="r_monto" type="number" inputmode="numeric" value="${h(c.monto)}">
+  </div>
+  <div class="card"><h3>2. Productos recibidos <span class="badge b-g" id="nItems">${REC.items.length}</span></h3><div id="items"></div>
+    <div class="row"><button class="btn sec" onclick="agregarItem()">+ Agregar producto</button><button class="btn gris" onclick="nuevoProducto()">Crear producto nuevo</button></div>
+  </div>
+  <div class="card"><h3>3. Checklist de recepción</h3>
+    <label class="l">T° del transporte / producto refrigerado (°C) <small>(si trae frío)</small></label><input id="r_temp" type="number" inputmode="decimal" step="0.1" value="${h(c.temp)}" oninput="marcarTemp(this,null,5)">
+    ${checklistHTML('rec', S.checkRecepcion, REC.check)}
+    <label class="l">Observaciones</label><textarea id="r_obs">${h(c.obs)}</textarea>
+    <label class="l">Fotos <small>(factura, productos, rechazos)</small></label>${fotoHTML('rec', true)}
+  </div>`, { barra: `<button class="btn gris" onclick="if(confirm('¿Borrar esta recepción y empezar de nuevo?')){REC=null;ls.del('rec_borrador');FOTOS.rec=[];recepcion()}">Limpiar</button><button class="btn" onclick="guardarRecepcion()">Ingresar a bodega</button>` });
+  pintarItems();
+  $('main').addEventListener('change', () => leerCabecera());
+}
+function provElegido(inp) { const p = (S.proveedores || []).find(x => x.nombre === inp.value); if (p && !$('#r_rut').value) $('#r_rut').value = p.rut; }
+function leerCabecera() {
+  if (!REC || !$('#r_bodega')) return;
+  Object.assign(REC.cab, { bodega: $('#r_bodega').value, proveedor: $('#r_proveedor').value.trim(), rut: $('#r_rut').value.trim(), tipo: $('#r_tipo').value, folio: $('#r_folio').value.trim(), fecha: $('#r_fecha').value, monto: $('#r_monto').value, temp: $('#r_temp').value, obs: $('#r_obs').value });
+  REC.check = leerChecklist('rec'); leerItems(); ls.set('rec_borrador', REC); ls.set('bodega', REC.cab.bodega);
+}
+function itemHTML(it, i) {
+  const p = (S.productos || []).find(x => x.c === it.c);
+  return `<div class="item ${it.rechazado ? 'rech' : ''}" data-i="${i}">
+    ${it.nf ? `<div class="fac">🧾 Factura: <b>${h(it.nf)}</b> — ${n0(it.qf)} ${h(it.uf || '')}${it.pf ? ' · ' + peso(it.pf) + ' c/u' : ''}${it.sug ? '<br><span class="sug">↳ Producto sugerido, revísalo</span>' : ''}</div>` : ''}
+    <div class="row"><div style="flex:3"><input class="i_prod" list="dl-prod" placeholder="Buscar producto…" value="${h(etiquetaProd(p))}" onchange="prodItem(${i},this)"></div><button class="x" onclick="quitarItem(${i})" title="Quitar">✕</button></div>
+    ${it.nf ? `<div class="row" style="margin-top:6px;align-items:center"><small class="muted" style="flex:2">1 ${h(it.uf || 'unidad de factura')} =</small><input class="i_factor" type="number" inputmode="decimal" step="any" value="${h(it.f || 1)}" oninput="factorItem(${i},this)"><small class="muted" style="flex:1">${h(p ? p.u : '')}</small></div>` : ''}
+    <div class="row" style="margin-top:6px">
+      <div><label class="l" style="margin-top:4px">Cantidad ${p ? '<small>(' + h(p.u) + ')</small>' : ''}</label><input class="i_cant" type="number" inputmode="decimal" step="any" value="${h(it.cant)}"></div>
+      <div><label class="l" style="margin-top:4px">Vencimiento</label><input class="i_venc" type="date" value="${h(it.venc || '')}"></div>
+    </div>
+    <div class="row">
+      <div><label class="l" style="margin-top:4px">Lote <small>(opc.)</small></label><input class="i_lote" value="${h(it.lote || '')}"></div>
+      <div><label class="l" style="margin-top:4px">Costo unit. <small>(opc.)</small></label><input class="i_costo" type="number" inputmode="decimal" value="${h(it.costo || '')}"></div>
+    </div>
+    <div class="row" style="margin-top:8px;align-items:center"><label style="flex:0 0 auto;display:flex;gap:6px;align-items:center"><input type="checkbox" class="i_rech" style="width:auto" ${it.rechazado ? 'checked' : ''} onchange="leerItems();setTimeout(pintarItems,0)"> Rechazar</label>${it.rechazado ? `<input class="i_motivo" placeholder="Motivo del rechazo" value="${h(it.motivo || '')}">` : ''}</div>
+  </div>`;
+}
+function pintarItems() { $('#items').innerHTML = REC.items.length ? REC.items.map(itemHTML).join('') : '<p class="muted">Aún no hay productos. Carga el XML o agrega a mano.</p>'; $('#nItems').textContent = REC.items.length; }
+function leerItems() {
+  $$('#items .item').forEach(el => {
+    const it = REC.items[el.dataset.i]; if (!it) return;
+    it.cant = $('.i_cant', el).value; it.venc = $('.i_venc', el).value; it.lote = $('.i_lote', el).value; it.costo = $('.i_costo', el).value;
+    it.rechazado = $('.i_rech', el).checked; const m = $('.i_motivo', el); if (m) it.motivo = m.value;
+    const f = $('.i_factor', el); if (f) it.f = f.value;
+  });
+}
+function agregarItem() { leerItems(); REC.items.push({ c: '', cant: '' }); pintarItems(); const ins = $$('.i_prod'); ins[ins.length - 1].focus(); }
+function quitarItem(i) { leerItems(); REC.items.splice(i, 1); pintarItems(); leerCabecera(); }
+function prodItem(i, inp) {
+  leerItems(); const p = prodDe(inp.value);
+  if (!p) { toast('Elige un producto de la lista o créalo con "Crear producto nuevo"'); inp.value = ''; REC.items[i].c = ''; return; }
+  REC.items[i].c = p.c; REC.items[i].sug = false; setTimeout(() => { pintarItems(); leerCabecera(); }, 0);
+}
+function factorItem(i, inp) {
+  const it = REC.items[i]; const f = Number(inp.value) || 1; it.f = f;
+  const el = $(`#items .item[data-i="${i}"]`);
+  $('.i_cant', el).value = Math.round(it.qf * f * 1000) / 1000;
+  if (it.pf) $('.i_costo', el).value = Math.round(it.pf / f);
+}
+
+/* Lectura del XML de la factura electrónica del SII (DTE) */
+$('#xmlFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  try {
+    const txt = await leerTextoXML(file);
+    const dte = parsearDTE(txt);
+    leerCabecera();
+    Object.assign(REC.cab, { proveedor: dte.prov, rut: dte.rut, tipo: dte.tipo, folio: dte.folio, fecha: dte.fecha || REC.cab.fecha, monto: dte.monto });
+    REC.items = REC.items.filter(i => i.c || i.cant).concat(dte.items.map(x => emparejar(x, dte.rut)));
+    ls.set('rec_borrador', REC); recepcion();
+    const sinProd = REC.items.filter(i => !i.c).length;
+    toast(`📄 ${dte.items.length} productos leídos de la ${dte.tipo.toLowerCase()} ${dte.folio}` + (sinProd ? `. Asigna ${sinProd} producto(s) sin emparejar.` : ''), 5000);
+  } catch (err) { toast('No se pudo leer el XML: ' + err.message, 5000); }
+});
+async function leerTextoXML(file) {
+  const buf = await file.arrayBuffer();
+  const cab = new TextDecoder('ascii').decode(buf.slice(0, 200));
+  const enc = /encoding=["']([\w-]+)/i.exec(cab);
+  try { return new TextDecoder(enc ? enc[1] : 'utf-8').decode(buf); } catch (e) { return new TextDecoder('iso-8859-1').decode(buf); }
+}
+function parsearDTE(txt) {
+  const doc = new DOMParser().parseFromString(txt, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length) throw new Error('el archivo no es un XML válido');
+  const t = (el, n) => { const x = el.getElementsByTagNameNS('*', n)[0] || el.getElementsByTagName(n)[0]; return x ? x.textContent.trim() : ''; };
+  const docs = [...doc.getElementsByTagNameNS('*', 'Documento')].concat(doc.getElementsByTagNameNS('*', 'Documento').length ? [] : [...doc.getElementsByTagName('Documento')]);
+  const D = docs[0]; if (!D) throw new Error('no se encontró un documento tributario (DTE)');
+  const tipos = { 33: 'Factura', 34: 'Factura', 46: 'Factura', 52: 'Guía de despacho', 39: 'Boleta', 41: 'Boleta', 56: 'Factura', 61: 'Factura' };
+  const tipoN = t(D, 'TipoDTE');
+  if (tipoN === '61') toast('⚠ Este XML es una nota de crédito: revisa antes de ingresar', 5000);
+  const items = [...D.getElementsByTagNameNS('*', 'Detalle')].map(d => {
+    const q = Number(t(d, 'QtyItem')) || 1, monto = Number(t(d, 'MontoItem')) || 0;
+    const pr = Number(t(d, 'PrcItem')) || (monto && q ? monto / q : 0);
+    return { nf: t(d, 'NmbItem') || t(d, 'DscItem'), qf: q, uf: t(d, 'UnmdItem'), pf: Math.round(pr), cod: t(d, 'VlrCodigo') };
+  }).filter(x => x.nf);
+  return { tipo: tipos[tipoN] || 'Factura', folio: t(D, 'Folio'), fecha: t(D, 'FchEmis'), rut: t(D, 'RUTEmisor'), prov: t(D, 'RznSoc') || t(D, 'RznSocEmisor'), monto: t(D, 'MntTotal'), items };
+}
+const norm = s => String(s || '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+const normRut = r => String(r || '').toUpperCase().replace(/[^0-9K]/g, '');
+function emparejar(x, rut) {
+  const it = { ...x, cant: x.qf, costo: x.pf || '', f: 1, c: '' };
+  const n = norm(x.nf), al = S.alias || [];
+  const a = al.find(a => a.n === n && a.rut === normRut(rut)) || al.find(a => a.n === n);
+  if (a && (S.productos || []).some(p => p.c === a.c)) { it.c = a.c; it.f = a.f || 1; it.cant = Math.round(x.qf * it.f * 1000) / 1000; it.costo = x.pf ? Math.round(x.pf / it.f) : ''; return it; }
+  // sugerencia por palabras en común
+  const pal = s => norm(s).split(/[^A-Z0-9]+/).filter(w => w.length > 2 && !/^\d+$/.test(w));
+  const w = pal(x.nf); let mejor = null, pts = 0;
+  (S.productos || []).forEach(p => { const pw = pal(p.n); const c = pw.filter(k => w.some(z => z.startsWith(k) || k.startsWith(z))).length / Math.max(pw.length, 1); if (c > pts) { pts = c; mejor = p; } });
+  if (mejor && pts >= .5) { it.c = mejor.c; it.sug = true; }
+  return it;
+}
+
+async function guardarRecepcion() {
+  leerCabecera();
+  const items = REC.items.filter(i => i.c && Number(i.cant) > 0);
+  const sinProd = REC.items.filter(i => !i.c && (i.nf || i.cant)).length;
+  if (sinProd) return toast(`Hay ${sinProd} línea(s) sin producto asignado. Asígnalo o quítalas.`, 4500);
+  if (!items.length) return toast('Agrega al menos un producto');
+  if (REC.check.some(x => !x)) return toast('Completa el checklist de recepción');
+  if (!REC.cab.proveedor) return toast('Escribe el proveedor');
+  const frios = items.some(i => /Refrig|Congel/.test(((S.productos || []).find(p => p.c === i.c) || {}).alm || ''));
+  if (frios && REC.cab.temp === '' && !confirm('Hay productos refrigerados y no registraste la temperatura. ¿Continuar igual?')) return;
+  const perecible = items.filter(i => !i.rechazado && !i.venc && /Refrig|Congel|Lácteo|Carne/.test(JSON.stringify((S.productos || []).find(p => p.c === i.c) || {})));
+  if (perecible.length && !confirm(perecible.length + ' producto(s) perecibles sin fecha de vencimiento. ¿Continuar igual?')) return;
+  const datos = {
+    uid: REC.uid || (REC.uid = uid()), cab: REC.cab, fotos: FOTOS.rec || [],
+    checklist: S.checkRecepcion.map((c, k) => ({ t: c.t, ok: c.ok, r: REC.check[k] })),
+    items: items.map(i => ({ c: i.c, cant: Number(i.cant), venc: i.venc, lote: i.lote, costo: i.costo, rechazado: i.rechazado, motivo: i.motivo, nf: i.nf })),
+    alias: items.filter(i => i.nf).map(i => ({ n: i.nf, c: i.c, f: Number(i.f) || 1 }))
+  };
+  try {
+    const r = await enviarOEncolar('recepcion', datos, 'Recepción ' + (REC.cab.proveedor || '') + ' ' + (REC.cab.folio || ''));
+    if (!r.enCola) {
+      S.stock = r.stock;
+      (datos.alias || []).forEach(a => { const n = norm(a.n); S.alias = (S.alias || []).filter(x => !(x.n === n && x.rut === normRut(REC.cab.rut))); S.alias.push({ n, rut: normRut(REC.cab.rut), c: a.c, f: a.f }); });
+    }
+    REC = null; ls.del('rec_borrador'); FOTOS.rec = [];
+    if (r.enCola) return modal(`<h3>📶 Guardada en el teléfono</h3><p>Se ingresará a bodega cuando vuelva la señal.</p><button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`);
+    ls.set('sesion', S);
+    modal(`<h3>${r.resultado === 'Aceptada' ? '✅' : '⚠️'} Recepción ${h(r.resultado.toLowerCase())}</h3><p class="muted">${h(r.id)}</p>${r.observaciones.length ? '<div class="aviso">' + r.observaciones.map(h).join('<br>') + '</div>' : ''}<p>El stock ya está actualizado.</p><div class="row"><button class="btn sec" onclick="cerrarModal();pila=[[inicio,[]]];ir(stockVista)">Ver stock</button><button class="btn" onclick="cerrarModal();pila=[];inicio()">Listo</button></div>`);
+  } catch (e) { toast(e.message, 5000); }
+}
+
+function nuevoProducto(cb, prod) {
+  const p = prod || { n: '', cat: '', u: 'kg', min: 0, alm: 'Seco', costo: '', b: '' };
+  modal(`<h3>${prod ? 'Editar producto' : 'Nuevo producto'}</h3>${prod ? '<p class="muted">' + h(prod.c) + '</p>' : ''}
+    <label class="l">Nombre</label><input id="np_n" value="${h(p.n)}">
+    <div class="row"><div><label class="l">Categoría</label>${selectHTML('np_cat', S.categorias, p.cat)}</div><div><label class="l">Unidad</label>${selectHTML('np_u', S.unidades, p.u, '—')}</div></div>
+    <div class="row"><div><label class="l">Stock mínimo</label><input id="np_min" type="number" inputmode="decimal" value="${h(p.min)}"></div><div><label class="l">Costo unit.</label><input id="np_costo" type="number" inputmode="decimal" value="${h(p.costo || '')}"></div></div>
+    <label class="l">Almacenamiento</label>${selectHTML('np_alm', S.almacenamiento, p.alm, '—')}
+    <label class="l">Bodega principal <small>(vacío = bodega central)</small></label>${selectHTML('np_b', S.config.bodegas, p.b, '— Bodega central —')}
+    ${prod ? '<label style="display:flex;gap:8px;margin-top:12px"><input type="checkbox" id="np_off" style="width:auto"> Desactivar producto (ya no se usa)</label>' : ''}
+    <div class="row" style="margin-top:16px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="np_ok">Guardar</button></div>`);
+  $('#np_ok').onclick = async () => {
+    const d = { c: prod ? prod.c : '', n: $('#np_n').value.trim(), cat: $('#np_cat').value, u: $('#np_u').value, min: $('#np_min').value, costo: $('#np_costo').value, alm: $('#np_alm').value, b: $('#np_b').value, activo: !($('#np_off') && $('#np_off').checked) };
+    if (!d.n || !d.cat || !d.u) return toast('Completa nombre, categoría y unidad');
+    if (!prod && (S.productos || []).some(x => norm(x.n) === norm(d.n))) return toast('Ya existe un producto con ese nombre');
+    try {
+      const r = await api('producto', { producto: d }); S.productos = r.productos; ls.set('sesion', S); prepararListas(); cerrarModal(); toast('✅ Producto ' + r.c + ' guardado');
+      if (typeof cb === 'function') cb(r.c); else if (REC && $('#items')) { leerItems(); const vacio = REC.items.find(i => !i.c); if (vacio) vacio.c = r.c; else REC.items.push({ c: r.c, cant: '' }); pintarItems(); leerCabecera(); }
+    } catch (e) { toast(e.message); }
+  };
+}
+
+/* ═════════════════════ Salidas y traspasos ═════════════════════ */
+let SAL = null;
+function salida(modo) {
+  const tras = modo === 'traspaso';
+  if (!SAL || SAL.modo !== modo) SAL = { modo, items: [{ c: '', cant: '' }], bodega: ls.get('bodega', S.config.bodegas[0]) };
+  const otras = S.config.bodegas;
+  pantalla(tras ? 'Traspaso entre bodegas' : 'Salida de bodega', `
+  <div class="card">
+    <label class="l">${tras ? 'Desde' : 'Bodega'}</label>${bodegaSel('s_bodega', SAL.bodega)}
+    ${tras ? `<label class="l">Hacia</label>${selectHTML('s_hacia', otras, SAL.hacia || otras.find(b => b !== SAL.bodega))}`
+      : `<label class="l">Motivo</label>${selectHTML('s_motivo', S.config.motivos.filter(m => !/Traspaso/i.test(m)), SAL.motivo)}
+         <label class="l">Destino / servicio</label>${selectHTML('s_destino', S.config.servicios, SAL.destino)}`}
+  </div>
+  <div class="card"><h3>Productos</h3><div id="sitems"></div><button class="btn sec" onclick="leerSal();SAL.items.push({c:'',cant:''});pintarSal()">+ Agregar producto</button></div>
+  <div class="card"><label class="l" style="margin-top:0">Observación <small>(opcional)</small></label><input id="s_obs" value="${h(SAL.obs || '')}"></div>`,
+    { barra: `<button class="btn" onclick="guardarSalida()">${tras ? 'Registrar traspaso' : 'Registrar salida'}</button>` });
+  $('#s_bodega').onchange = () => { leerSal(); setTimeout(pintarSal, 0); };
+  pintarSal();
+}
+function stockDe(b, c) { return (S.stock || []).find(s => s.b === b && s.c === c); }
+function pintarSal() {
+  const b = $('#s_bodega').value;
+  $('#sitems').innerHTML = SAL.items.map((it, i) => {
+    const p = (S.productos || []).find(x => x.c === it.c), s = p && stockDe(b, p.c);
+    const mas = s && Number(it.cant) > s.stock;
+    return `<div class="item" data-i="${i}"><div class="row"><div style="flex:3"><input class="s_prod" list="dl-prod" placeholder="Buscar producto…" value="${h(etiquetaProd(p))}" onchange="prodSal(${i},this)"></div><button class="x" onclick="leerSal();SAL.items.splice(${i},1);pintarSal()">✕</button></div>
+      <div class="row" style="margin-top:6px;align-items:center"><input class="s_cant" type="number" inputmode="decimal" step="any" placeholder="Cantidad" value="${h(it.cant)}" oninput="leerSal()"><div class="muted" style="font-size:13.5px">${p ? h(p.u) + ' · hay <b>' + n0(s ? s.stock : 0) + '</b>' + (s && s.venc ? '<br>sale primero lo que vence ' + fFecha(s.venc) : '') : ''}</div></div>
+      ${mas ? '<div class="aviso" style="margin-bottom:0">La cantidad es mayor al stock registrado. Se guardará igual y se avisará para revisar.</div>' : ''}</div>`;
+  }).join('');
+}
+function leerSal() {
+  if (!$('#s_bodega')) return;
+  SAL.bodega = $('#s_bodega').value; ls.set('bodega', SAL.bodega);
+  if ($('#s_hacia')) SAL.hacia = $('#s_hacia').value;
+  if ($('#s_motivo')) { SAL.motivo = $('#s_motivo').value; SAL.destino = $('#s_destino').value; }
+  SAL.obs = $('#s_obs') ? $('#s_obs').value : '';
+  $$('#sitems .item').forEach(el => { SAL.items[el.dataset.i].cant = $('.s_cant', el).value; });
+}
+function prodSal(i, inp) { leerSal(); const p = prodDe(inp.value); if (!p) { toast('Elige un producto de la lista'); inp.value = ''; return; } SAL.items[i].c = p.c; setTimeout(() => { pintarSal(); $$('.s_cant')[i].focus(); }, 0); }
+async function guardarSalida() {
+  leerSal();
+  const items = SAL.items.filter(i => i.c && Number(i.cant) > 0).map(i => ({ c: i.c, cant: Number(i.cant) }));
+  if (!items.length) return toast('Agrega productos con cantidad');
+  const tras = SAL.modo === 'traspaso';
+  if (tras && SAL.hacia === SAL.bodega) return toast('El origen y el destino son la misma bodega');
+  if (!tras && (!SAL.motivo || !SAL.destino)) return toast('Elige motivo y destino');
+  const datos = { uid: SAL.uid || (SAL.uid = uid()), bodega: SAL.bodega, items, obs: SAL.obs, ...(tras ? { hacia: SAL.hacia } : { motivo: SAL.motivo, destino: SAL.destino }) };
+  try {
+    const r = await enviarOEncolar('salida', datos, (tras ? 'Traspaso a ' + SAL.hacia : 'Salida ' + SAL.motivo) + ' (' + items.length + ' productos)');
+    if (r.enCola) { SAL = null; return modal(`<h3>📶 Guardada en el teléfono</h3><p>Se registrará cuando vuelva la señal.</p><button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`); }
+    S.stock = r.stock; ls.set('sesion', S);
+    const bajos = r.stock.filter(s => s.b === SAL.bodega && items.some(i => i.c === s.c) && s.estado !== 'OK' && s.estado !== 'Vence pronto');
+    SAL = null;
+    modal(`<h3>✅ ${tras ? 'Traspaso registrado' : 'Salida registrada'}</h3><p class="muted">${h(r.id)}</p>${r.avisos.length ? '<div class="aviso">' + r.avisos.map(h).join('<br>') + '</div>' : ''}${bajos.length ? '<div class="aviso r"><b>Quedó bajo el mínimo:</b><br>' + bajos.map(s => h(s.n) + ': ' + n0(s.stock) + ' ' + h(s.u)).join('<br>') + '</div>' : ''}<div class="row"><button class="btn sec" onclick="cerrarModal();salida('${tras ? 'traspaso' : ''}')">Otra ${tras ? 'transferencia' : 'salida'}</button><button class="btn" onclick="cerrarModal();pila=[];inicio()">Listo</button></div>`);
+  } catch (e) { toast(e.message, 5000); }
+}
+
+/* ═════════════════════ Stock en línea ═════════════════════ */
+const EST = { 'OK': 'b-ok', 'Vence pronto': 'b-a', 'Bajo mínimo': 'b-a', 'Sin stock': 'b-r', 'Vencido': 'b-r' };
+let FS = { b: '', q: '', cat: '', est: '' };
+async function stockVista(recargar = true) {
+  FS.b = FS.b || ls.get('bodega', S.config.bodegas[0]);
+  pantalla('Stock en línea', `
+  <div class="filtros">${bodegaSel('st_b', FS.b)}<input id="st_q" placeholder="🔎 Buscar" value="${h(FS.q)}"></div>
+  <div class="filtros">${selectHTML('st_cat', S.categorias, FS.cat, 'Todas las categorías')}${selectHTML('st_est', ['Alertas (todas)', 'Vencido', 'Vence pronto', 'Bajo mínimo', 'Sin stock', 'OK'], FS.est, 'Todos los estados')}</div>
+  <div id="st_kpi"></div><div class="card lista" id="st_lista"><p class="muted">Cargando…</p></div>`,
+    { barra: `<button class="btn gris" onclick="stockVista(true)">↻ Actualizar</button><button class="btn" onclick="ir(salida,'')">📤 Salida</button>` });
+  ['st_b', 'st_q', 'st_cat', 'st_est'].forEach(id => $('#' + id).addEventListener('input', () => { FS = { b: $('#st_b').value, q: $('#st_q').value, cat: $('#st_cat').value, est: $('#st_est').value }; ls.set('bodega', FS.b); pintarStock(); }));
+  if (S.stock) pintarStock();
+  if (recargar) { try { S.stock = await api('stock', {}, { mudo: !!S.stock }); ls.set('sesion', S); pintarStock(); } catch (e) { toast(e.red ? 'Sin señal: stock guardado de la última vez' : e.message); } }
+}
+function pintarStock() {
+  if (!$('#st_lista')) return;
+  const q = norm(FS.q);
+  const todos = (S.stock || []).filter(s => s.b === FS.b);
+  const l = todos.filter(s => (!q || norm(s.n + ' ' + s.c).includes(q)) && (!FS.cat || s.cat === FS.cat) && (!FS.est || (FS.est === 'Alertas (todas)' ? s.estado !== 'OK' : s.estado === FS.est)));
+  $('#st_kpi').innerHTML = `<div class="kpis"><div class="kpi"><small>Valor en bodega</small><b>${peso(todos.reduce((a, s) => a + s.valor, 0))}</b></div><div class="kpi"><small>Bajo mínimo / sin stock</small><b style="color:var(--a)">${todos.filter(s => s.estado === 'Bajo mínimo' || s.estado === 'Sin stock').length}</b></div><div class="kpi"><small>Vencidos / por vencer</small><b style="color:var(--r)">${todos.filter(s => s.estado === 'Vencido' || s.estado === 'Vence pronto').length}</b></div></div>`;
+  $('#st_lista').innerHTML = l.length ? l.map(s => `<div class="it" onclick="detalleStock('${s.c}')"><div class="c"><b>${h(s.n)}</b><small>${h(s.c)} · ${h(s.cat)}${s.venc ? ' · vence ' + fFecha(s.venc) + (s.qv && s.qv !== s.stock ? ' (' + n0(s.qv) + ')' : '') : ''}</small><br><span class="badge ${EST[s.estado]}">${h(s.estado)}</span></div><div class="num"><b>${n0(s.stock)}</b> ${h(s.u)}<br><small class="muted">mín. ${n0(s.min)}</small></div></div>`).join('') : '<p class="muted">No hay productos con ese filtro.</p>';
+}
+function detalleStock(c) {
+  const s = stockDe(FS.b, c); if (!s) return;
+  modal(`<h3>${h(s.n)}</h3><p class="muted">${h(s.c)} · ${h(s.cat)} · ${h(s.alm)}</p>
+  <table class="tabla"><tr><td>Stock</td><td class="num"><b>${n0(s.stock)} ${h(s.u)}</b></td></tr><tr><td>Mínimo</td><td class="num">${n0(s.min)}</td></tr><tr><td>Estado</td><td class="num"><span class="badge ${EST[s.estado]}">${h(s.estado)}</span></td></tr>
+  <tr><td>Próximo vencimiento</td><td class="num">${s.venc ? fFecha(s.venc) + ' (' + n0(s.qv) + ' ' + h(s.u) + ')' : '—'}</td></tr><tr><td>Valor</td><td class="num">${peso(s.valor)}</td></tr>
+  <tr><td>Última entrada</td><td class="num">${fFecha(s.ultE) || '—'}</td></tr><tr><td>Última salida</td><td class="num">${fFecha(s.ultS) || '—'}</td></tr></table>
+  <div class="row" style="margin-top:14px">${esAdmin() ? `<button class="btn gris" onclick="cerrarModal();ir(movimientosVista,'${s.c}')">Movimientos</button>` : ''}<button class="btn" onclick="cerrarModal()">Cerrar</button></div>`);
+}
+
+/* ═════════════════════ Inventario físico ═════════════════════ */
+function inventario() {
+  const b = ls.get('bodega', S.config.bodegas[0]);
+  pantalla('Inventario físico', `
+  <div class="aviso v">Cuenta lo que hay realmente y escribe la cantidad. Deja en blanco lo que no contaste. El sistema registra la diferencia como ajuste. Úsalo también para cargar el <b>stock inicial</b> la primera vez.</div>
+  <div class="filtros">${bodegaSel('inv_b', b)}${selectHTML('inv_cat', S.categorias, '', 'Todas las categorías')}</div>
+  <div class="card lista" id="inv_l"></div>`, { barra: `<button class="btn" onclick="guardarInventario()">Guardar conteo</button>` });
+  const pintar = () => {
+    const bb = $('#inv_b').value, cat = $('#inv_cat').value; ls.set('bodega', bb);
+    const lista = (S.productos || []).filter(p => !cat || p.cat === cat).map(p => ({ p, s: stockDe(bb, p.c) })).filter(x => x.s || !x.p.b || x.p.b === bb);
+    $('#inv_l').innerHTML = lista.map(({ p, s }) => `<div class="it"><div class="c"><b>${h(p.n)}</b><small>${h(p.c)} · sistema: ${n0(s ? s.stock : 0)} ${h(p.u)}</small></div><input style="max-width:110px" type="number" inputmode="decimal" step="any" data-inv="${p.c}" placeholder="${h(p.u)}"></div>`).join('');
+  };
+  $('#inv_b').onchange = pintar; $('#inv_cat').onchange = pintar; pintar();
+}
+async function guardarInventario() {
+  const items = $$('[data-inv]').filter(i => i.value !== '').map(i => ({ c: i.dataset.inv, conteo: Number(i.value) }));
+  if (!items.length) return toast('No escribiste ningún conteo');
+  if (!confirm('¿Guardar el conteo de ' + items.length + ' productos? Las diferencias quedan registradas como ajuste.')) return;
+  try { const r = await api('ajuste', { bodega: $('#inv_b').value, items }); S.stock = r.stock; ls.set('sesion', S); toast(`✅ ${r.ajustes} diferencias ajustadas (${peso(r.valor)})`, 4500); pila.pop(); ir(stockVista, false); }
+  catch (e) { toast(e.message); }
+}
+
+function productosVista() {
+  pantalla('Productos', `<div class="filtros"><input id="pv_q" placeholder="🔎 Buscar producto">${selectHTML('pv_cat', S.categorias, '', 'Todas')}</div><div class="card lista" id="pv_l"></div>`, { barra: `<button class="btn" onclick="nuevoProducto(()=>productosVista())">+ Nuevo producto</button>` });
+  const pintar = () => { const q = norm($('#pv_q').value), cat = $('#pv_cat').value; $('#pv_l').innerHTML = (S.productos || []).filter(p => (!q || norm(p.n + p.c).includes(q)) && (!cat || p.cat === cat)).map(p => `<div class="it" onclick="nuevoProducto(()=>productosVista(),(S.productos||[]).find(x=>x.c==='${p.c}'))"><div class="c"><b>${h(p.n)}</b><small>${h(p.c)} · ${h(p.cat)} · ${h(p.alm)}${p.b ? ' · ' + h(p.b) : ''}</small></div><div class="num">${h(p.u)}<br><small class="muted">mín. ${n0(p.min)}</small></div></div>`).join('') || '<p class="muted">Sin productos.</p>'; };
+  $('#pv_q').oninput = pintar; $('#pv_cat').onchange = pintar; pintar();
+}
+
+/* ═════════════════════ Perfil ═════════════════════ */
+async function perfil() {
+  const u = S.usuario, docs = S.misDocumentos || [];
+  pantalla('Mi perfil', `<div class="card"><h3>${h(u.nombre)}</h3><p class="muted" style="margin:0">${h(u.cargo || '')} · ${h(ROLES[u.rol] || u.rol)}<br>RUT ${h(u.rut)}</p></div>
+  <h2>Mis cursos y documentos</h2><div class="card lista">${docs.length ? docs.map(d => `<div class="it"><div class="c"><b>${h(d.tipo)}</b><small>${d.venc ? 'Vence ' + fFecha(d.venc) : 'Sin vencimiento'}${d.archivo ? ' · <a href="' + h(d.archivo) + '" target="_blank">ver</a>' : ''}</small></div><span class="badge ${d.estado === 'Vigente' ? 'b-ok' : d.estado === 'Vencido' ? 'b-r' : d.estado === 'Por vencer' ? 'b-a' : 'b-g'}">${h(d.estado)}</span></div>`).join('') : '<p class="muted">La administración aún no registra cursos a tu nombre.</p>'}</div>
+  <h2>Mis últimos registros</h2><div class="card lista" id="misreg"><p class="muted">Cargando…</p></div>
+  <h2>Seguridad</h2><div class="card"><div class="row"><input id="pin1" type="password" inputmode="numeric" placeholder="PIN actual"><input id="pin2" type="password" inputmode="numeric" placeholder="PIN nuevo"></div><button class="btn sec full" style="margin-top:10px" onclick="cambiarPin()">Cambiar PIN</button></div>
+  <button class="btn rojo full" onclick="if(cola.get().length&&!confirm('Hay registros sin enviar en este teléfono. Si sales, se mantendrán, pero no se enviarán hasta que vuelvas a entrar. ¿Salir?'))return;salir()">Cerrar sesión</button>`);
+  try { const r = await api('misRegistros', {}, { mudo: true }); $('#misreg').innerHTML = r.length ? r.map(x => `<div class="it"><div class="c"><b>${x.icono} ${h(x.form)}</b><small>${fFecha(x.fecha)}</small></div><span class="badge ${/Conforme/.test(x.resultado) ? 'b-ok' : 'b-a'}">${h(x.resultado)}</span></div>`).join('') : '<p class="muted">Aún no tienes registros.</p>'; }
+  catch (e) { $('#misreg').innerHTML = '<p class="muted">Sin señal.</p>'; }
+}
+async function cambiarPin() { try { await api('cambiarPin', { actual: $('#pin1').value, nuevo: $('#pin2').value }); toast('✅ PIN cambiado'); $('#pin1').value = $('#pin2').value = ''; } catch (e) { toast(e.message); } }
+
+/* ═════════════════════ Panel de administración ═════════════════════ */
+async function resumenVista() {
+  pantalla('Resumen del día', '<p class="muted">Cargando…</p>');
+  let r; try { r = await api('resumen'); } catch (e) { return toast(e.message); }
+  S.stock = null;
+  const alertasPor = b => r.alertas.filter(a => a.b === b);
+  pantalla('Resumen del día', `
+  <div class="kpis"><div class="kpi"><small>Valor total en bodegas</small><b>${peso(r.valor)}</b></div><div class="kpi"><small>Recepciones hoy</small><b>${r.recepcionesHoy.length}</b></div><div class="kpi"><small>Salidas hoy (líneas)</small><b>${r.salidasHoy.length}</b></div><div class="kpi"><small>Registros con observación</small><b style="color:${r.forms.some(f => f.obs) ? 'var(--r)' : 'inherit'}">${r.forms.reduce((a, f) => a + f.obs, 0)}</b></div></div>
+  ${r.documentos.length ? `<h2>Permisos y cursos por vencer</h2><div class="card lista">${r.documentos.map(d => `<div class="it"><div class="c"><b>${h(d.tipo)}</b><small>${h(d.titular)} · ${fFecha(d.venc)}</small></div><span class="badge ${d.estado === 'Vencido' ? 'b-r' : 'b-a'}">${d.dv < 0 ? 'Vencido' : d.dv + ' días'}</span></div>`).join('')}</div>` : ''}
+  <h2>Registros de hoy</h2><div class="card lista">${r.forms.map(f => `<div class="it" onclick="ir(registrosVista,'${f.id}')"><div class="c"><b>${f.icono} ${h(f.titulo)}</b>${f.ultimos.map(u => `<small style="display:block;color:var(--r)">⚠ ${h(u.nombre)}: ${h(u.resultado)}${u.nc ? ' — ' + h(u.nc.split('\n')[0]) : ''}</small>`).join('')}</div><div class="num"><b>${f.hoy}</b>${f.obs ? '<br><span class="badge b-r">' + f.obs + ' obs.</span>' : ''}</div></div>`).join('')}</div>
+  ${S.config.bodegas.map(b => `<h2>Alertas · ${h(b)}</h2><div class="card lista">${alertasPor(b).length ? alertasPor(b).map(s => `<div class="it"><div class="c"><b>${h(s.n)}</b><small>${s.venc ? 'vence ' + fFecha(s.venc) + ' · ' : ''}mín. ${n0(s.min)}</small></div><div class="num">${n0(s.stock)} ${h(s.u)}<br><span class="badge ${EST[s.estado]}">${h(s.estado)}</span></div></div>`).join('') : '<p class="muted">Todo en orden ✅</p>'}</div>`).join('')}
+  ${r.recepcionesHoy.length ? `<h2>Recepciones de hoy</h2><div class="card lista">${r.recepcionesHoy.map(x => `<div class="it"><div class="c"><b>${h(x['Proveedor'])}</b><small>${h(x['Documento'])} ${h(x['Folio'])} · ${h(x['Bodega'])} · ${h(x['Responsable'])}</small></div><span class="badge ${x['Resultado'] === 'Aceptada' ? 'b-ok' : 'b-a'}">${h(x['Resultado'])}</span></div>`).join('')}</div>` : ''}`);
+}
+
+function rangoHTML(pref) { const d = new Date(); d.setDate(d.getDate() - 7); const ini = new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10); return `<input type="date" id="${pref}_d" value="${ini}"><input type="date" id="${pref}_h" value="${hoyISO()}">`; }
+
+async function registrosVista(fid) {
+  const forms = S.forms;
+  pantalla('Registros', `<div class="filtros"><select id="rg_f">${forms.map(f => `<option value="${f.id}" ${f.id === fid ? 'selected' : ''}>${f.icono} ${h(f.titulo)}</option>`).join('')}</select></div><div class="filtros">${rangoHTML('rg')}</div><label style="display:flex;gap:8px;margin:0 2px 10px"><input type="checkbox" id="rg_obs" style="width:auto"> Solo con observaciones</label><div id="rg_l"></div>`,
+    { barra: `<button class="btn" onclick="cargarRegistros()">Buscar</button>` });
+  $('#rg_f').onchange = cargarRegistros; cargarRegistros();
+}
+async function cargarRegistros() {
+  try {
+    const rows = await api('registros', { form: $('#rg_f').value, desde: $('#rg_d').value, hasta: $('#rg_h').value });
+    const sol = $('#rg_obs').checked;
+    const l = rows.filter(r => !sol || r['No conformidades']);
+    $('#rg_l').innerHTML = l.length ? l.map(r => {
+      const extra = Object.keys(r).filter(k => !['ID', 'Fecha', 'RUT', 'Nombre', 'Resultado', 'No conformidades'].includes(k) && r[k] !== '');
+      return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${h(r['Nombre'])}</b><br><small class="muted">${fFecha(r['Fecha'])} · ${h(r['ID'])}</small></div><span class="badge ${r['No conformidades'] ? 'b-r' : 'b-ok'}">${h(r['Resultado'])}</span></div>
+      ${r['No conformidades'] ? '<div class="aviso r">' + h(r['No conformidades']).replace(/\n/g, '<br>') + '</div>' : ''}
+      <details><summary>Ver detalle</summary><table class="tabla">${extra.map(k => `<tr><th>${h(k)}</th><td>${/^https:\/\/drive/.test(String(r[k])) ? String(r[k]).split('\n').map((u, i) => `<a href="${h(u)}" target="_blank">archivo ${i + 1}</a>`).join(' · ') : h(r[k]).replace(/\n/g, '<br>')}</td></tr>`).join('')}</table></details></div>`;
+    }).join('') : '<p class="muted centro">Sin registros en ese período.</p>';
+  } catch (e) { toast(e.message); }
+}
+
+async function movimientosVista(codigo) {
+  pantalla('Movimientos', `<div class="filtros">${rangoHTML('mv')}</div><div class="filtros">${selectHTML('mv_b', S.config.bodegas, '', 'Todas las bodegas')}${selectHTML('mv_t', ['ENTRADA', 'SALIDA', 'AJUSTE'], '', 'Todos los tipos')}</div><input id="mv_q" placeholder="🔎 Producto" value="${h(codigo || '')}" style="margin-bottom:10px"><div class="card scroll" id="mv_l"></div>`,
+    { barra: `<button class="btn" onclick="cargarMovs()">Buscar</button>` });
+  if (codigo) { const d = new Date(); d.setDate(d.getDate() - 90); $('#mv_d').value = d.toISOString().slice(0, 10); }
+  ['mv_b', 'mv_t', 'mv_q'].forEach(id => $('#' + id).addEventListener('input', pintarMovs));
+  cargarMovs();
+}
+let MOVS = [];
+async function cargarMovs() { try { MOVS = await api('movimientos', { desde: $('#mv_d').value, hasta: $('#mv_h').value }); pintarMovs(); } catch (e) { toast(e.message); } }
+function pintarMovs() {
+  const b = $('#mv_b').value, t = $('#mv_t').value, q = norm($('#mv_q').value);
+  const l = MOVS.filter(m => (!b || m['Bodega'] === b) && (!t || m['Tipo'] === t) && (!q || norm(m['Producto'] + ' ' + m['Código']).includes(q))).reverse();
+  $('#mv_l').innerHTML = l.length ? `<table class="tabla"><tr><th>Fecha</th><th>Producto</th><th class="num">Cant.</th><th>Detalle</th></tr>${l.map(m => `<tr><td>${fFecha(m['Fecha'])}</td><td><b>${h(m['Producto'])}</b><br><small class="muted">${h(m['Bodega'])}</small></td><td class="num" style="color:${m['Tipo'] === 'SALIDA' || Number(m['Cantidad']) < 0 ? 'var(--r)' : 'var(--ok)'}"><b>${m['Tipo'] === 'SALIDA' ? '−' : Number(m['Cantidad']) > 0 ? '+' : ''}${n0(m['Cantidad'])}</b> ${h(m['Unidad'])}</td><td><small>${h(m['Motivo'])}${m['Proveedor / Destino'] ? ' · ' + h(m['Proveedor / Destino']) : ''}<br>${h(m['Documento'])} · ${h(m['Responsable'])}</small></td></tr>`).join('')}</table>` : '<p class="muted">Sin movimientos.</p>';
+}
+
+async function recepcionesVista() {
+  pantalla('Recepciones', `<div class="filtros">${rangoHTML('rc')}</div><div id="rc_l"></div>`, { barra: `<button class="btn" onclick="cargarRec()">Buscar</button>` });
+  cargarRec();
+}
+async function cargarRec() {
+  try {
+    const l = (await api('recepciones', { desde: $('#rc_d').value, hasta: $('#rc_h').value })).reverse();
+    $('#rc_l').innerHTML = l.length ? l.map(x => `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><div><b>${h(x['Proveedor'])}</b><br><small class="muted">${h(x['Documento'])} ${h(x['Folio'])} · ${fFecha(x['Fecha'])} · ${h(x['Bodega'])}</small></div><span class="badge ${x['Resultado'] === 'Aceptada' ? 'b-ok' : x['Resultado'] === 'Rechazada' ? 'b-r' : 'b-a'}">${h(x['Resultado'])}</span></div>
+    <small class="muted">${x['N° productos']} productos · recibió ${h(x['Responsable'])}${x['Monto total'] ? ' · ' + peso(x['Monto total']) : ''}${x['T° transporte'] !== '' ? ' · ' + h(x['T° transporte']) + ' °C' : ''}</small>
+    ${x['No conformidades'] ? '<div class="aviso">' + h(x['No conformidades']).replace(/\n/g, '<br>') + '</div>' : ''}${x['Fotos'] ? '<small>' + String(x['Fotos']).split('\n').map((u, i) => `<a href="${h(u)}" target="_blank">foto ${i + 1}</a>`).join(' · ') + '</small>' : ''}</div>`).join('') : '<p class="muted centro">Sin recepciones.</p>';
+  } catch (e) { toast(e.message); }
+}
+
+/* Permisos sanitarios, documentos de vehículos y cursos de faena */
+let FD = { tit: '', q: '' };
+async function documentosVista(recargar = true) {
+  pantalla('Permisos, documentos y cursos', `<div class="filtros">${selectHTML('dc_t', ['Empresa', 'Vehículo', 'Trabajador'], FD.tit, 'Todos')}<input id="dc_q" placeholder="🔎 Buscar" value="${h(FD.q)}"></div><div class="card lista" id="dc_l"></div>`,
+    { barra: `<button class="btn" onclick="editarDoc()">+ Agregar documento o curso</button>` });
+  const pintar = () => {
+    FD = { tit: $('#dc_t').value, q: $('#dc_q').value }; const q = norm(FD.q);
+    const l = (S.documentos || []).filter(d => (!FD.tit || claseDoc(d) === FD.tit) && (!q || norm(d.tipo + d.titular + d.rut + d.detalle).includes(q)));
+    $('#dc_l').innerHTML = l.length ? l.map(d => `<div class="it" onclick="editarDoc('${d.id}')"><div class="c"><b>${h(d.tipo)}</b><small>${h(d.titular)}${d.rut ? ' · ' + h(d.rut) : ''}${d.venc ? ' · vence ' + fFecha(d.venc) : ''}</small></div><span class="badge ${d.estado === 'Vigente' ? 'b-ok' : d.estado === 'Vencido' ? 'b-r' : d.estado === 'Por vencer' ? 'b-a' : 'b-g'}">${h(d.estado)}</span></div>`).join('') : '<p class="muted">Aún no hay documentos. Agrega la resolución sanitaria, documentos de vehículos y los cursos de cada trabajador para recibir avisos antes de que venzan.</p>';
+  };
+  $('#dc_t').onchange = pintar; $('#dc_q').oninput = pintar; pintar();
+  if (recargar) try { S.documentos = await api('documentos', {}, { mudo: true }); pintar(); } catch (e) { }
+}
+function claseDoc(d) { for (const k in S.config.tiposDoc) if (S.config.tiposDoc[k].includes(d.tipo)) return k; return d.titular === 'Empresa' ? 'Empresa' : 'Trabajador'; }
+let DOCARCH = '';
+function editarDoc(id) {
+  const d = (S.documentos || []).find(x => x.id === id) || { tipo: '', titular: '', rut: '', detalle: '', emision: '', venc: '', obs: '', archivo: '' };
+  const clase = id ? claseDoc(d) : 'Trabajador'; DOCARCH = '';
+  modal(`<h3>${id ? 'Editar' : 'Nuevo'} documento</h3>
+    <label class="l">¿De qué es?</label><div class="seg" id="dc_clase">${['Trabajador', 'Vehículo', 'Empresa'].map(c => `<button type="button" class="${c === clase ? 'on' : ''}" onclick="$$('#dc_clase button').forEach(b=>b.className='');this.className='on';tiposDoc()">${c}</button>`).join('')}</div>
+    <label class="l">Tipo</label><div id="dc_tipo_w"></div>
+    <div id="dc_tit_w"></div>
+    <label class="l">Detalle <small>(institución, N° de resolución, faena…)</small></label><input id="dc_det" value="${h(d.detalle)}">
+    <div class="row"><div><label class="l">Emisión</label><input id="dc_em" type="date" value="${h(d.emision)}"></div><div><label class="l">Vencimiento</label><input id="dc_ve" type="date" value="${h(d.venc)}"></div></div>
+    <label class="l">Archivo <small>(PDF o foto)</small></label>${d.archivo ? `<p style="margin:0 0 6px"><a href="${h(d.archivo)}" target="_blank">Ver archivo actual</a></p>` : ''}<input type="file" id="dc_file" accept="application/pdf,image/*">
+    <label class="l">Observaciones</label><input id="dc_obs" value="${h(d.obs)}">
+    <div class="row" style="margin-top:16px">${id ? '<button class="btn rojo" id="dc_del">Eliminar</button>' : '<button class="btn gris" onclick="cerrarModal()">Cancelar</button>'}<button class="btn" id="dc_ok">Guardar</button></div>`);
+  window.tiposDoc = () => {
+    const c = $('#dc_clase .on').textContent;
+    $('#dc_tipo_w').innerHTML = selectHTML('dc_tipo', S.config.tiposDoc[c], d.tipo);
+    $('#dc_tit_w').innerHTML = c === 'Trabajador' ? `<label class="l">Trabajador</label><select id="dc_tit">${(S.trabajadores || []).map(t => `<option value="${h(t.rut)}" ${t.rut === d.rut ? 'selected' : ''}>${h(t.nombre)}</option>`).join('')}</select>`
+      : c === 'Vehículo' ? `<label class="l">Patente</label>${S.config.vehiculos.length ? selectHTML('dc_tit', S.config.vehiculos, d.rut) : `<input id="dc_tit" value="${h(d.rut)}">`}` : '';
+  };
+  tiposDoc();
+  $('#dc_file').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.type.startsWith('image/')) DOCARCH = await comprimir(f, 1800, .8);
+    else { if (f.size > 8e6) { toast('El PDF pesa más de 8 MB'); e.target.value = ''; return; } DOCARCH = await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(f); }); }
+  };
+  const enviar = async borrar => {
+    const c = $('#dc_clase .on').textContent, tsel = $('#dc_tit');
+    const tr = c === 'Trabajador' && tsel ? (S.trabajadores || []).find(t => t.rut === tsel.value) : null;
+    const nd = { id: d.id, tipo: $('#dc_tipo').value, titular: c === 'Empresa' ? 'Empresa' : c === 'Vehículo' ? 'Vehículo ' + (tsel ? tsel.value.toUpperCase() : '') : (tr ? tr.nombre : ''), rut: c === 'Empresa' ? '' : (tsel ? tsel.value.toUpperCase() : ''),
+      detalle: $('#dc_det').value, emision: $('#dc_em').value, venc: $('#dc_ve').value, obs: $('#dc_obs').value, archivo: d.archivo, archivoNuevo: DOCARCH, borrar };
+    if (!nd.tipo) return toast('Elige el tipo');
+    if (c !== 'Empresa' && !nd.rut) return toast('Indica a quién pertenece');
+    try { S.documentos = await api('documento', { d: nd }, { txt: 'Guardando…' }); cerrarModal(); documentosVista(false); toast('✅ Guardado'); } catch (e) { toast(e.message); }
+  };
+  $('#dc_ok').onclick = () => enviar(false);
+  if ($('#dc_del')) $('#dc_del').onclick = () => confirm('¿Eliminar este documento?') && enviar(true);
+}
+
+async function trabajadoresVista() {
+  pantalla('Trabajadores', '<div class="card lista" id="tr_l"><p class="muted">Cargando…</p></div>', { barra: `<button class="btn" onclick="editarTrab()">+ Agregar trabajador</button>` });
+  try { TRABS = await api('trabajadores', {}, { mudo: true }); pintarTrabs(); } catch (e) { toast(e.message); }
+}
+let TRABS = [];
+function pintarTrabs() {
+  $('#tr_l').innerHTML = TRABS.map((t, i) => `<div class="it" onclick="editarTrab(${i})" style="${t.activo ? '' : 'opacity:.5'}"><div class="c"><b>${h(t.nombre)}</b><small>${h(t.rut)} · ${h(t.cargo)}${t.servicio ? ' · ' + h(t.servicio) : ''}</small></div><span class="badge b-g">${h(ROLES[t.rol] || t.rol)}</span></div>`).join('');
+}
+function editarTrab(i) {
+  const t = i != null ? TRABS[i] : { rut: '', nombre: '', cargo: '', rol: 'cocina', servicio: '', tel: '', activo: true };
+  modal(`<h3>${i != null ? 'Editar' : 'Nuevo'} trabajador</h3>
+    <label class="l">RUT</label><input id="tr_rut" value="${h(t.rut)}" ${i != null ? 'disabled' : ''} placeholder="12.345.678-9">
+    <label class="l">Nombre completo</label><input id="tr_nom" value="${h(t.nombre)}">
+    <label class="l">Cargo</label><input id="tr_cargo" value="${h(t.cargo)}" placeholder="Cocinera, ayudante, chofer…">
+    <label class="l">Qué ve en la app</label><select id="tr_rol">${Object.keys(ROLES).map(r => `<option value="${r}" ${r === t.rol ? 'selected' : ''}>${ROLES[r]}</option>`).join('')}</select>
+    <p class="muted" style="font-size:13px;margin:6px 0 0">Cocina y Atención: control del manipulador, temperaturas, limpieza, raciones. Chofer: checklist del vehículo. Bodega: recepción, salidas y stock. Administración: todo.</p>
+    <label class="l">Servicio habitual</label>${selectHTML('tr_serv', S.config.servicios, t.servicio, '—')}
+    <label class="l">Teléfono</label><input id="tr_tel" value="${h(t.tel)}" inputmode="tel">
+    ${i != null ? `<label style="display:flex;gap:8px;margin-top:12px"><input type="checkbox" id="tr_act" style="width:auto" ${t.activo ? 'checked' : ''}> Activo (puede entrar)</label><label style="display:flex;gap:8px;margin-top:8px"><input type="checkbox" id="tr_reset" style="width:auto"> Reiniciar PIN (vuelve a los 4 primeros números del RUT)</label>` : '<p class="muted" style="font-size:13px">Su PIN inicial serán los 4 primeros números del RUT.</p>'}
+    <div class="row" style="margin-top:16px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="tr_ok">Guardar</button></div>`);
+  $('#tr_ok').onclick = async () => {
+    const d = { rut: $('#tr_rut').value.trim(), nombre: $('#tr_nom').value.trim(), cargo: $('#tr_cargo').value.trim(), rol: $('#tr_rol').value, servicio: $('#tr_serv').value, tel: $('#tr_tel').value.trim(), activo: i == null || $('#tr_act').checked, resetPin: i != null && $('#tr_reset').checked };
+    if (!d.rut || !d.nombre) return toast('RUT y nombre son obligatorios');
+    if (i == null && !rutValido(d.rut)) return toast('El RUT no es válido (revisa el dígito verificador)');
+    try { TRABS = await api('trabajador', { t: d }); S.trabajadores = TRABS.map(x => ({ rut: x.rut, nombre: x.nombre })); cerrarModal(); pintarTrabs(); toast('✅ Guardado'); } catch (e) { toast(e.message); }
+  };
+}
+function rutValido(r) { const c = normRut(r); if (c.length < 2) return false; const cu = c.slice(0, -1), dv = c.slice(-1); let s = 0, m = 2; for (let i = cu.length - 1; i >= 0; i--) { s += Number(cu[i]) * m; m = m === 7 ? 2 : m + 1; } const e = 11 - s % 11; return dv === (e === 11 ? '0' : e === 10 ? 'K' : String(e)); }
+
+function configVista() {
+  const c = S.configCompleta || {};
+  const campo = (k, lab, ayuda, area = true) => `<label class="l">${h(lab)}${ayuda ? ' <small>· ' + h(ayuda) + '</small>' : ''}</label>${area ? `<textarea data-cfg="${k}">${h(c[k] || '')}</textarea>` : `<input data-cfg="${k}" value="${h(c[k] || '')}">`}`;
+  pantalla('Configuración', `<div class="card">
+    ${campo('empresa', 'Nombre de la empresa', '', false)}
+    ${campo('correo_alertas', 'Correo(s) que reciben las alertas', 'separados por coma', false)}
+    ${campo('bodegas', 'Bodegas', 'separadas por coma; la primera es la central')}
+    ${campo('servicios', 'Servicios, casinos y clientes', 'separados por coma')}
+    ${campo('motivos_salida', 'Motivos de salida', 'separados por coma')}
+    ${campo('equipos_frio', 'Equipos de frío', 'Nombre|mín|máx, separados por coma')}
+    ${campo('vehiculos', 'Patentes de vehículos', 'separadas por coma', false)}
+    <div class="row"><div>${campo('dias_aviso_venc', 'Avisar vencimiento de productos', 'días antes', false)}</div><div>${campo('dias_aviso_docs', 'Avisar vencimiento de documentos', 'días antes', false)}</div></div>
+    ${campo('color', 'Color de la app', 'ej: #1F7A4D', false)}
+    <div class="aviso" style="margin-top:14px">Si cambias el nombre de una bodega, el stock ya registrado queda con el nombre anterior. Mejor agrega bodegas nuevas al final.</div>
+  </div>`, { barra: `<button class="btn" onclick="guardarConfig()">Guardar</button>` });
+}
+async function guardarConfig() {
+  const cfg = {}; $$('[data-cfg]').forEach(el => cfg[el.dataset.cfg] = el.value.trim().replace(/\s*\n\s*/g, ', '));
+  try { await api('config', { config: cfg }); await refrescar(); toast('✅ Configuración guardada'); pila = []; inicio(); } catch (e) { toast(e.message); }
+}
+
+/* ═════════════════════ Arranque ═════════════════════ */
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => { });
+if (S && S.token) { pila = []; inicio(); vaciarCola(); } else login();
+</script>
+</body>
+</html>

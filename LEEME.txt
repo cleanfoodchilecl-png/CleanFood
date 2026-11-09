@@ -1,0 +1,5 @@
+CLEAN FOOD – Bodega, Inocuidad y Prevención
+
+Sube TODOS estos archivos a la raíz del repositorio de GitHub.
+El único archivo que hay que editar es config.js: pega ahí el enlace /exec de Apps Script.
+Cuando subas un index.html nuevo, cambia también la VERSION en sw.js para que los teléfonos tomen la versión nueva.
