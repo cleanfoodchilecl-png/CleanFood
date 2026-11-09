@@ -118,10 +118,15 @@ input:focus,select:focus,textarea:focus{outline:0;border-color:var(--v);box-shad
 .cargando{position:fixed;inset:0;background:rgba(244,247,242,.78);z-index:60;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--g)}
 .spin{width:44px;height:44px;border:4px solid var(--v2);border-top-color:var(--v);border-right-color:var(--lima);border-radius:50%;animation:g .9s linear infinite}
 @keyframes g{to{transform:rotate(360deg)}}
-.fondo-login{min-height:100vh;background:radial-gradient(circle at 15% 10%,rgba(150,188,17,.18),transparent 40%),radial-gradient(circle at 90% 90%,rgba(0,136,51,.14),transparent 45%),var(--f);padding:1px 0 40px}
-.login{max-width:400px;margin:7vh auto 0;padding:0 18px}
-.login .marca{display:block;width:260px;max-width:80%;margin:0 auto 6px}
-.login .sub{text-align:center;color:var(--g);margin:0 0 22px;font-size:14.5px;letter-spacing:.02em}
+.fondo-login{min-height:100vh;background:radial-gradient(circle at 15% 10%,rgba(150,188,17,.18),transparent 40%),radial-gradient(circle at 90% 90%,rgba(0,136,51,.14),transparent 45%),var(--f);display:flex;flex-direction:column}
+.login-foto{width:100%;aspect-ratio:4/3;max-height:52vh;background:#1b2a1f url(fondo.jpg) center/cover no-repeat}
+.login{width:100%;max-width:420px;margin:-34px auto 0;padding:0 18px 32px;position:relative}
+.login .marca{display:none;width:260px;max-width:80%;margin:0 auto 6px}
+.login .sub{display:none;text-align:center;color:var(--g);margin:0 0 22px;font-size:14.5px;letter-spacing:.02em}
+.login .pie{display:none}
+@media(min-width:900px){.fondo-login{flex-direction:row;height:100vh}.login-foto{width:50%;max-height:none;aspect-ratio:auto;height:100vh}
+.login{flex:1;max-width:none;margin:0;padding:0 5vw;display:flex;flex-direction:column;justify-content:center;overflow:auto}.login>*{max-width:420px;width:100%;margin-left:auto;margin-right:auto}
+.login .marca{display:block;width:260px;max-width:260px;margin:0 auto 6px}.login .sub{display:block;text-align:center;margin:0 auto 22px}.login .pie{display:block}}
 .login .card{padding:20px 18px;border-radius:22px;box-shadow:0 10px 30px rgba(20,38,26,.08)}
 .centro{text-align:center}
 .muted{color:var(--g);font-size:14px}
@@ -330,7 +335,7 @@ function cerrarModal() { const m = $('#modal'); if (m) m.remove(); }
 
 /* ═════════════════════ Ingreso ═════════════════════ */
 function login() {
-  $('#app').innerHTML = `<div class="fondo-login"><div class="login">
+  $('#app').innerHTML = `<div class="fondo-login"><div class="login-foto" role="img" aria-label="Clean Food · Take a Food"></div><div class="login">
     <img class="marca" src="${LOGO}" alt="Clean Food">
     <p class="sub">Bodega · Inocuidad · Prevención</p>
     <div class="card">
