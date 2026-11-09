@@ -131,6 +131,18 @@ details summary{cursor:pointer;font-weight:600;padding:4px 0;color:var(--v-osc)}
 .filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .filtros>*{flex:1;min-width:130px}
 a{color:var(--v)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .dn{font-size:11.5px;color:var(--g);text-align:center;font-weight:700;padding:4px 0}
+.cal .d{background:#fff;border:1px solid var(--b);border-radius:12px;min-height:58px;padding:5px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:14px}
+.cal .d.fuera{opacity:.35}.cal .d.hoy{border-color:var(--lima);box-shadow:0 0 0 2px rgba(150,188,17,.35)}
+.cal .d.sel{background:var(--v);color:#fff;border-color:var(--v)}
+.cal .d .pts{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.cal .d .pt{width:7px;height:7px;border-radius:50%}
+.cal .d .n{font-size:11px;font-weight:700;background:var(--v2);color:var(--v);border-radius:10px;padding:0 6px}
+.cal .d.sel .n{background:rgba(255,255,255,.25);color:#fff}
+.enc{border-left:4px solid var(--v)}
+.enc.Cancelado{opacity:.5;border-left-color:#999}.enc.Entregado{border-left-color:#999}.enc.Pendiente{border-left-color:var(--a)}
+.rut .it{cursor:pointer}.rut .it.hecho b{text-decoration:line-through;color:var(--g)}
 .pie{text-align:center;margin-top:30px;color:var(--g);font-size:12px}
 .pie img{height:28px;opacity:.75;display:block;margin:0 auto 6px}
 .pie .dos{display:flex;gap:18px;justify-content:center;align-items:center;margin-bottom:6px}.pie .dos img{margin:0;height:30px;opacity:.85}
@@ -295,8 +307,9 @@ function inicio() {
   const st = (S.stock || []), alertas = st.filter(x => x.estado !== 'OK' && x.estado !== 'Agotado').length, vencen = st.filter(x => x.estado === 'Vencido' || x.estado === 'Vence pronto').length;
   const fecha = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
   let html = `<div class="hero"><small>${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</small><b>Hola, ${h(u.nombre.split(' ')[0])} 👋</b><small>${h(u.cargo || ROLES[u.rol] || '')}${u.servicio ? ' · ' + h(u.servicio) : ''}</small>
-    ${esBodega() ? `<div class="chips">${st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div>` : ''}</div>`;
+    <div class="chips">${esBodega() && st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${esBodega() && vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${encHoy().length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">📅 ${encHoy().length} encargo${encHoy().length > 1 ? 's' : ''} hoy</button>` : ''}${esBodega() && pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div></div>`;
   if (docsMal.length) html += `<div class="aviso">${docsMal.map(d => `⏰ <b>${h(d.tipo)}</b>: ${d.dv < 0 ? 'vencido el ' : 'vence el '}${fFecha(d.venc)}`).join('<br>')}</div>`;
+  html += `<h2>Encargos y agenda</h2><div class="grid">${tile("CAL.sel=hoyISO();ir(calendarioVista)", '📅', 'Calendario de encargos', encHoy().length ? encHoy().length + ' para hoy' : 'Pedidos, eventos y entregas', 'dest')}${(S.rutina || []).length && ['admin', 'bodega', 'chofer'].includes(S.usuario.rol) ? tile("ir(rutinaVista)", '🕒', 'Rutina del día', 'Logística y repartos') : ''}${puedeEncargar() ? tile("editarEncargo(null,hoyISO())", '➕', 'Nuevo encargo', '') : ''}</div>`;
   if (esBodega()) {
     html += `<h2>Bodega y stock</h2><div class="grid">
       ${tile("ir(recepcion)", '📥', 'Recepción de mercadería', 'Factura o guía + checklist', 'dest')}
@@ -759,6 +772,122 @@ function productosVista() {
   pantalla('Productos', `<div class="filtros"><input id="pv_q" placeholder="🔎 Buscar producto">${selectHTML('pv_cat', S.categorias, '', 'Todas')}</div><div class="card lista" id="pv_l"></div>`, { barra: `<button class="btn" onclick="nuevoProducto(()=>productosVista())">+ Nuevo producto</button>` });
   const pintar = () => { const q = norm($('#pv_q').value), cat = $('#pv_cat').value; $('#pv_l').innerHTML = (S.productos || []).filter(p => (!q || norm(p.n + p.c).includes(q)) && (!cat || p.cat === cat)).map(p => `<div class="it" onclick="nuevoProducto(()=>productosVista(),(S.productos||[]).find(x=>x.c==='${p.c}'))"><div class="c"><b>${h(p.n)}</b><small>${h(p.c)} · ${h(p.cat)} · ${h(p.alm)}${p.prov ? ' · 🚚 ' + h(p.prov) : ''}</small></div><div class="num">${h(p.u)}<br><small class="muted">mín. ${n0(p.min)}</small></div></div>`).join('') || '<p class="muted">Sin productos.</p>'; };
   $('#pv_q').oninput = pintar; $('#pv_cat').onchange = pintar; pintar();
+}
+
+/* ═════════════════════ Calendario de encargos ═════════════════════ */
+const CAL = { y: new Date().getFullYear(), m: new Date().getMonth(), sel: '', enc: [] };
+const puedeEncargar = () => ['admin', 'atencion', 'cocina', 'bodega'].includes(S.usuario.rol);
+const encHoy = () => (S.encargos || []).filter(e => e.fecha === hoyISO() && !['Entregado', 'Cancelado'].includes(e.estado));
+const ISO = d => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 10); };
+const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const ESTC = { 'Pendiente': 'b-a', 'Confirmado': 'b-ok', 'En preparación': 'b-a', 'Listo': 'b-ok', 'Entregado': 'b-g', 'Cancelado': 'b-g' };
+function diaDe(iso) { return DIAS[new Date(iso + 'T12:00:00').getDay()]; }
+function proveedoresDia(iso, campo) { const d = diaDe(iso); return (S.proveedores || []).filter(p => diasDe(p[campo]).has(d)).map(p => p.nombre); }
+
+async function calendarioVista() {
+  if (!CAL.sel) CAL.sel = hoyISO();
+  const ini = new Date(CAL.y, CAL.m, 1), off = (ini.getDay() + 6) % 7, desde = new Date(CAL.y, CAL.m, 1 - off);
+  const dias = Array.from({ length: 42 }, (_, i) => ISO(new Date(desde.getFullYear(), desde.getMonth(), desde.getDate() + i)));
+  pantalla('Calendario de encargos', `
+    <div class="card" style="padding:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <button class="btn gris chico" onclick="moverMes(-1)">‹</button><b style="font-size:17px;text-transform:capitalize">${MESES[CAL.m]} ${CAL.y}</b><button class="btn gris chico" onclick="moverMes(1)">›</button>
+      </div>
+      <div class="cal">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(x => `<div class="dn">${x}</div>`).join('')}
+        ${dias.map(d => `<div class="d ${d.slice(5, 7) != String(CAL.m + 1).padStart(2, '0') ? 'fuera' : ''} ${d === hoyISO() ? 'hoy' : ''} ${d === CAL.sel ? 'sel' : ''}" data-d="${d}" onclick="CAL.sel='${d}';pintarCal()"><span>${Number(d.slice(8))}</span><span class="cnt"></span></div>`).join('')}
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--g)"><span><i class="pt" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--v)"></i> Encargo</span>${esBodega() ? '<span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#2F6FDE"></i> Pedir a proveedor</span><span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lima)"></i> Llega proveedor</span>' : ''}</div>
+    </div>
+    <div id="cal_dia"></div>`, { barra: puedeEncargar() ? `<button class="btn" onclick="editarEncargo(null, CAL.sel)">➕ Nuevo encargo</button>` : '' });
+  CAL.dias = dias;
+  pintarCal();
+  try { CAL.enc = await api('encargos', { desde: dias[0], hasta: dias[41] }, { mudo: true }); ls.set('encargos_cache', CAL.enc); }
+  catch (e) { CAL.enc = ls.get('encargos_cache', S.encargos || []); }
+  pintarCal();
+}
+function moverMes(k) { CAL.m += k; if (CAL.m < 0) { CAL.m = 11; CAL.y--; } if (CAL.m > 11) { CAL.m = 0; CAL.y++; } CAL.sel = ISO(new Date(CAL.y, CAL.m, 1)); calendarioVista(); }
+function pintarCal() {
+  if (!$('#cal_dia')) return;
+  const activos = e => !['Cancelado'].includes(e.estado);
+  $$('.cal .d').forEach(el => {
+    const d = el.dataset.d, n = CAL.enc.filter(e => e.fecha === d && activos(e)).length;
+    el.classList.toggle('sel', d === CAL.sel);
+    const pts = [];
+    if (esBodega() && proveedoresDia(d, 'pedido').length) pts.push('#2F6FDE');
+    if (esBodega() && proveedoresDia(d, 'llegada').length) pts.push('var(--lima)');
+    $('.cnt', el).innerHTML = (n ? `<span class="n">${n}</span>` : '') + (pts.length ? `<span class="pts">${pts.map(c => `<i class="pt" style="background:${c}"></i>`).join('')}</span>` : '');
+  });
+  const d = CAL.sel, lista = CAL.enc.filter(e => e.fecha === d);
+  const fecha = new Date(d + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' });
+  const ped = esBodega() ? proveedoresDia(d, 'pedido') : [], lle = esBodega() ? proveedoresDia(d, 'llegada') : [];
+  $('#cal_dia').innerHTML = `<h2 style="text-transform:none;letter-spacing:0;font-size:15px">${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</h2>
+    ${lista.length ? lista.map(encargoCard).join('') : '<div class="card muted centro">Sin encargos este día.</div>'}
+    ${ped.length || lle.length ? `<div class="card" style="font-size:14.5px">${ped.length ? `📞 <b>Pedir a:</b> ${h(ped.join(', '))}<br>` : ''}${lle.length ? `🚚 <b>Llegan:</b> ${h(lle.join(', '))}` : ''}</div>` : ''}
+    ${['admin', 'bodega', 'chofer'].includes(S.usuario.rol) && rutinaDe(d).length ? `<details class="card"><summary>🕒 Rutina de logística (${rutinaDe(d).length} tareas)</summary>${rutinaHTML(d)}</details>` : ''}`;
+}
+function encargoCard(e) {
+  const tel = String(e.tel || '').replace(/\D/g, ''), cel = /^569\d{8}$/.test(tel) ? tel : /^9\d{8}$/.test(tel) ? '56' + tel : '';
+  const saldo = e.valor ? e.valor - (e.abono || 0) : 0;
+  const sig = { 'Pendiente': 'Confirmado', 'Confirmado': 'En preparación', 'En preparación': 'Listo', 'Listo': 'Entregado' }[e.estado];
+  return `<div class="card enc ${h(e.estado).replace(/ .*/, '')}">
+    <div style="display:flex;justify-content:space-between;gap:8px"><div><b style="font-size:16px">${e.hora ? h(e.hora) + ' · ' : ''}${h(e.cliente)}</b><br><small class="muted">${h(e.tipo)}${e.entrega ? ' · ' + h(e.entrega) : ''}${e.lugar ? ' · ' + h(e.lugar) : ''}</small></div><span class="badge ${ESTC[e.estado] || 'b-g'}">${h(e.estado)}</span></div>
+    <p style="margin:8px 0 4px;white-space:pre-line">${h(e.detalle)}${e.cant ? ` <b>(${h(e.cant)})</b>` : ''}</p>
+    ${e.valor ? `<small class="muted">Valor ${peso(e.valor)}${e.abono ? ' · abonó ' + peso(e.abono) : ''}${saldo > 0 ? ' · <b style="color:var(--a)">saldo ' + peso(saldo) + '</b>' : ' · pagado'}</small><br>` : ''}
+    ${e.obs ? `<small>📝 ${h(e.obs)}</small><br>` : ''}<small class="muted">${e.resp ? 'Responsable: ' + h(e.resp) + ' · ' : ''}ingresó ${h(e.creador)}</small>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap">
+      ${sig ? `<button class="btn chico" onclick="cambiarEstadoEnc('${e.id}','${sig}')">Marcar ${sig.toLowerCase()}</button>` : ''}
+      ${cel ? `<a class="btn chico sec" style="flex:0 0 auto" target="_blank" href="https://wa.me/${cel}">WhatsApp</a>` : tel ? `<a class="btn chico sec" style="flex:0 0 auto" href="tel:${h(e.tel)}">📞</a>` : ''}
+      ${puedeEncargar() ? `<button class="btn chico gris" style="flex:0 0 auto" onclick="editarEncargo('${e.id}')">Editar</button>` : ''}
+    </div></div>`;
+}
+async function cambiarEstadoEnc(id, estado) {
+  const e = CAL.enc.find(x => x.id === id); const prev = e.estado; e.estado = estado; pintarCal();
+  try { await api('estadoEncargo', { id, estado }, { mudo: true }); const s = (S.encargos || []).find(x => x.id === id); if (s) s.estado = estado; toast('✅ ' + estado); }
+  catch (err) { e.estado = prev; pintarCal(); toast(err.red ? 'Sin señal: no se pudo cambiar el estado' : err.message); }
+}
+function editarEncargo(id, fecha) {
+  const e = (CAL.enc || []).find(x => x.id === id) || (S.encargos || []).find(x => x.id === id) || { fecha: fecha || CAL.sel || hoyISO(), hora: '', tipo: 'Particular', cliente: '', tel: '', detalle: '', cant: '', lugar: '', entrega: 'Retira en local', valor: '', abono: '', estado: 'Pendiente', resp: '', obs: '' };
+  modal(`<h3>${id ? 'Editar encargo' : 'Nuevo encargo'}</h3>
+    <div class="row"><div><label class="l">Fecha</label><input id="e_fecha" type="date" value="${h(e.fecha)}"></div><div><label class="l">Hora</label><input id="e_hora" type="time" value="${h(e.hora)}"></div></div>
+    <label class="l">Tipo</label>${selectHTML('e_tipo', S.tiposEncargo || [], e.tipo, '—')}
+    <label class="l">Cliente</label><input id="e_cli" value="${h(e.cliente)}" placeholder="Nombre o empresa">
+    <label class="l">Teléfono <small>(opcional)</small></label><input id="e_tel" inputmode="tel" value="${h(e.tel)}" placeholder="+56 9 …">
+    <label class="l">¿Qué se encargó?</label><textarea id="e_det" placeholder="Ej: 30 colaciones con pollo grillado, 5 vegetarianas">${h(e.detalle)}</textarea>
+    <div class="row"><div><label class="l">Cantidad</label><input id="e_cant" value="${h(e.cant)}" placeholder="Ej: 30 raciones"></div><div><label class="l">Entrega</label>${selectHTML('e_ent', ['Retira en local', 'Despacho', 'Servicio en el lugar'], e.entrega, '—')}</div></div>
+    <label class="l">Lugar / dirección <small>(si es despacho o evento)</small></label><input id="e_lug" value="${h(e.lugar)}">
+    <div class="row"><div><label class="l">Valor total $</label><input id="e_val" type="number" inputmode="numeric" value="${h(e.valor || '')}"></div><div><label class="l">Abono $</label><input id="e_abo" type="number" inputmode="numeric" value="${h(e.abono || '')}"></div></div>
+    <div class="row"><div><label class="l">Estado</label>${selectHTML('e_est', S.estadosEncargo || [], e.estado, '—')}</div><div><label class="l">Responsable</label><input id="e_resp" value="${h(e.resp)}"></div></div>
+    <label class="l">Observaciones</label><input id="e_obs" value="${h(e.obs)}" placeholder="Alergias, dietas especiales, factura…">
+    <div class="row" style="margin-top:16px">${id && ['admin', 'atencion'].includes(S.usuario.rol) ? '<button class="btn rojo" id="e_del">Eliminar</button>' : '<button class="btn gris" onclick="cerrarModal()">Cancelar</button>'}<button class="btn" id="e_ok">Guardar</button></div>`);
+  const enviar = async borrar => {
+    const d = { id: id || '', fecha: $('#e_fecha').value, hora: $('#e_hora').value, tipo: $('#e_tipo').value, cliente: $('#e_cli').value.trim(), tel: $('#e_tel').value.trim(), detalle: $('#e_det').value.trim(), cant: $('#e_cant').value.trim(), entrega: $('#e_ent').value, lugar: $('#e_lug').value.trim(), valor: $('#e_val').value, abono: $('#e_abo').value, estado: $('#e_est').value || 'Pendiente', resp: $('#e_resp').value.trim(), obs: $('#e_obs').value.trim(), borrar, desde: (CAL.dias || [])[0], hasta: (CAL.dias || [])[41] };
+    if (!borrar && (!d.fecha || !d.cliente || !d.detalle)) return toast('Completa fecha, cliente y qué se encargó');
+    try {
+      const r = await api('encargo', { e: d }, { txt: 'Guardando…' });
+      if (CAL.dias) CAL.enc = r;
+      cerrarModal(); toast(borrar ? 'Encargo eliminado' : '✅ Encargo guardado'); refrescar(true);
+      if ($('#cal_dia')) { CAL.sel = d.fecha; const f = new Date(d.fecha + 'T12:00:00'); if (f.getMonth() !== CAL.m || f.getFullYear() !== CAL.y) { CAL.m = f.getMonth(); CAL.y = f.getFullYear(); calendarioVista(); } else pintarCal(); }
+      else { CAL.sel = d.fecha; ir(calendarioVista); }
+    } catch (err) { toast(err.red ? 'Sin señal: el encargo no se guardó, inténtalo de nuevo' : err.message, 4500); }
+  };
+  $('#e_ok').onclick = () => enviar(false);
+  if ($('#e_del')) $('#e_del').onclick = () => confirm('¿Eliminar este encargo?') && enviar(true);
+}
+
+/* Rutina diaria de logística (planilla Horarios) */
+function rutinaDe(iso) { const d = diaDe(iso); return (S.rutina || []).filter(r => r.dia === d); }
+function rutinaHTML(iso) {
+  const hechos = ls.get('rutina_' + iso, []);
+  return `<div class="lista rut">${rutinaDe(iso).map((r, i) => `<div class="it ${hechos.includes(i) ? 'hecho' : ''}" onclick="marcarRutina('${iso}',${i},this)"><span style="font-size:20px">${hechos.includes(i) ? '✅' : '⬜'}</span><div class="c"><b>${h(r.tarea)}</b><small>${h(r.hora)}</small></div></div>`).join('')}</div>`;
+}
+function marcarRutina(iso, i, el) {
+  const k = 'rutina_' + iso, hechos = ls.get(k, []); const j = hechos.indexOf(i);
+  if (j >= 0) hechos.splice(j, 1); else hechos.push(i); ls.set(k, hechos);
+  el.classList.toggle('hecho', j < 0); $('span', el).textContent = j < 0 ? '✅' : '⬜';
+}
+function rutinaVista() {
+  const iso = hoyISO(), lista = rutinaDe(iso);
+  pantalla('Rutina del día', lista.length ? `<p class="muted" style="margin:0 2px 10px">Toca cada tarea al terminarla. Se guarda en este teléfono.</p><div class="card">${rutinaHTML(iso)}</div>` : '<div class="card muted centro">Hoy no hay rutina cargada.</div>');
 }
 
 /* ═════════════════════ Proveedores ═════════════════════ */
