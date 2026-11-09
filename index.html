@@ -150,6 +150,32 @@ a{color:var(--v)}
 .menu .pl{font-size:15.5px;margin-top:2px}
 .vt input{max-width:70px;text-align:center;padding:9px 6px}
 .vt td:first-child{width:50%}
+.nav{display:none}
+.navfondo{display:none}
+.nav .lgn{padding:16px 18px 10px;border-bottom:1px solid var(--b)}
+.nav .lgn img{height:44px;display:block}
+.nav .lgn small{display:block;color:var(--g);font-size:12.5px;margin-top:6px}
+.nav .grp{font-size:11.5px;font-weight:700;color:var(--v-osc);text-transform:uppercase;letter-spacing:.07em;padding:14px 18px 6px}
+.nav a{display:flex;align-items:center;gap:10px;padding:9px 18px;color:var(--t);text-decoration:none;font-size:14.5px;border-left:3px solid transparent;cursor:pointer}
+.nav a:hover{background:var(--v2)}
+.nav a.on{background:var(--v2);border-left-color:var(--v);color:var(--v-osc);font-weight:700}
+.nav a .ic{width:22px;text-align:center;font-size:17px}
+.nav .pie2{padding:14px 18px;border-top:1px solid var(--b);font-size:12.5px;color:var(--g)}
+header .ham{display:inline-flex;align-items:center;justify-content:center}
+body.navab .nav{display:flex;position:fixed;left:0;top:0;bottom:0;width:280px;z-index:30;background:#fff;flex-direction:column;overflow-y:auto;box-shadow:4px 0 24px rgba(0,0,0,.15);animation:entra .18s ease-out}
+body.navab .navfondo{display:block;position:fixed;inset:0;background:rgba(20,38,26,.4);z-index:29}
+@keyframes entra{from{transform:translateX(-30px);opacity:0}}
+@media(min-width:960px){
+  .nav{display:flex;position:fixed;left:0;top:0;bottom:0;width:260px;background:#fff;border-right:1px solid var(--b);flex-direction:column;overflow-y:auto;z-index:8}
+  body.navab .nav{width:260px;box-shadow:none;animation:none}
+  body.navab .navfondo{display:none}
+  header,main,.barra,#colaBar{margin-left:260px}
+  .barra{left:260px;margin-left:0}
+  header .ham{display:none}
+  header .lg{display:none}
+  main{max-width:980px;padding:22px 28px 110px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+}
 .pie{text-align:center;margin-top:30px;color:var(--g);font-size:12px}
 .pie img{height:28px;opacity:.75;display:block;margin:0 auto 6px}
 .pie .dos{display:flex;gap:18px;justify-content:center;align-items:center;margin-bottom:6px}.pie .dos img{margin:0;height:30px;opacity:.85}
@@ -242,10 +268,28 @@ setInterval(vaciarCola, 60000);
 function ir(fn, ...args) { pila.push([fn, args]); fn(...args); window.scrollTo(0, 0); history.pushState({ n: pila.length }, ''); }
 function atras() { if (pila.length > 1) { pila.pop(); const [fn, args] = pila[pila.length - 1]; fn(...args); window.scrollTo(0, 0); } else inicio(); }
 window.addEventListener('popstate', () => { if (pila.length > 1) atras(); });
+function menuLateral() {
+  const u = S.usuario, f = S.forms || [], A = esAdmin(), B = esBodega(), cocina = ['admin', 'cocina', 'atencion'].includes(u.rol);
+  const G = [
+    { g: '', it: [['🏠', 'Inicio', "pila=[];inicio()", 'inicio']] },
+    { g: 'Encargos y agenda', it: [['📅', 'Calendario de encargos', "CAL.sel=hoyISO();ir(calendarioVista)", 'calendarioVista'], (S.rutina || []).length && ['admin', 'bodega', 'chofer'].includes(u.rol) ? ['🕒', 'Rutina del día', 'ir(rutinaVista)', 'rutinaVista'] : null] },
+    cocina && (S.minutas || []).length ? { g: 'Cocina y servicio', it: [['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista']] } : null,
+    B ? { g: 'Bodega y stock', it: [['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista']] } : null,
+    { g: 'Inocuidad y prevención', it: f.map(x => [x.icono, x.titulo, `ir(formulario,'${x.id}')`, 'form:' + x.id]) },
+    A ? { g: 'Administración', it: [['📊', 'Resumen del día', 'ir(resumenVista)', 'resumenVista'], ['🍽️', 'Raciones del mes y PAE', 'ir(racionesVista)', 'racionesVista'], ['🗂️', 'Registros', 'ir(registrosVista)', 'registrosVista'], ['📒', 'Movimientos', 'ir(movimientosVista)', 'movimientosVista'], ['🧾', 'Recepciones', 'ir(recepcionesVista)', 'recepcionesVista'], ['📑', 'Permisos y cursos', 'ir(documentosVista)', 'documentosVista'], ['👥', 'Trabajadores', 'ir(trabajadoresVista)', 'trabajadoresVista'], ['⚙️', 'Configuración', 'ir(configVista)', 'configVista'], ['📗', 'Abrir planilla', 'abrirPlanilla()', '']] } : null,
+    { g: 'Mi cuenta', it: [['👤', 'Mi perfil', 'ir(perfil)', 'perfil']] }
+  ].filter(Boolean);
+  const top = pila.length ? pila[pila.length - 1] : null, act = top ? (top[0].name === 'formulario' ? 'form:' + top[1][0] : top[0].name) : 'inicio';
+  return `<div class="lgn"><img src="${LOGO}" alt="Clean Food"><small>${h(u.nombre)} · ${h(ROLES[u.rol] || u.rol)}</small></div>
+    ${G.map(x => `${x.g ? `<div class="grp">${h(x.g)}</div>` : ''}${x.it.filter(Boolean).map(i => `<a class="${i[3] && i[3] === act ? 'on' : ''}" onclick="document.body.classList.remove('navab');${i[2]}"><span class="ic">${i[0]}</span>${h(i[1])}</a>`).join('')}`).join('')}
+    <div class="pie2"><img src="${TAKEAFOOD}" alt="" style="height:22px;opacity:.8"><br>${h(S.version || '')}</div>`;
+}
 function pantalla(titulo, html, opts = {}) {
   const u = S.usuario;
   $('#app').innerHTML = `
+  <nav class="nav">${menuLateral()}</nav><div class="navfondo" onclick="document.body.classList.remove('navab')"></div>
   <header>
+    <button class="ham" onclick="document.body.classList.add('navab')" aria-label="Menú">☰</button>
     ${opts.home ? `<img class="lg" src="${LOGO}" alt="Clean Food">` : `<button onclick="history.back()" aria-label="Volver">←</button><img class="mz" src="${MANZANA}" alt="">`}
     <div class="tit">${opts.home ? '' : `<b>${h(titulo)}</b>`}<small>${h(opts.sub || (u.nombre + ' · ' + (ROLES[u.rol] || u.rol)))}</small></div>
     ${opts.home ? '<button onclick="ir(perfil)">👤</button>' : '<button onclick="pila=[];inicio()">⌂</button>'}
