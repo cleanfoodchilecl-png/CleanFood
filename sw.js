@@ -1,6 +1,6 @@
 // Permite abrir la app sin señal. Cambia VERSION cuando subas un index.html nuevo.
-const VERSION = 'cf-1.1';
-const ARCHIVOS = ['./', 'index.html', 'config.js', 'manifest.json', 'icon.svg', 'icon-192.png'];
+const VERSION = 'cf-1.2';
+const ARCHIVOS = ['./', 'index.html', 'config.js', 'manifest.json', 'icon-192.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(ARCHIVOS)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(k => Promise.all(k.filter(x => x !== VERSION).map(x => caches.delete(x)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
