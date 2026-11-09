@@ -183,6 +183,10 @@ body.navab .navfondo{display:block;position:fixed;inset:0;background:rgba(20,38,
   main{max-width:980px;padding:22px 28px 110px}
   .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
 }
+.tareas .it{cursor:pointer}
+.tareas .it.ok b{color:var(--g)}
+.prog{height:8px;border-radius:6px;background:#EEF2EF;overflow:hidden;margin:6px 0 4px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--v),var(--lima));border-radius:6px}
 .pie{text-align:center;margin-top:30px;color:var(--g);font-size:12px}
 .pie img{height:28px;opacity:.75;display:block;margin:0 auto 6px}
 .pie .dos{display:flex;gap:18px;justify-content:center;align-items:center;margin-bottom:6px}.pie .dos img{margin:0;height:30px;opacity:.85}
@@ -376,6 +380,7 @@ function inicio() {
   let html = `<div class="hero"><small>${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</small><b>Hola, ${h(u.nombre.split(' ')[0])} 👋</b><small>${h(u.cargo || ROLES[u.rol] || '')}${u.servicio ? ' · ' + h(u.servicio) : ''}</small>
     <div class="chips">${esBodega() && st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${esBodega() && vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${encHoy().length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">📅 ${encHoy().length} encargo${encHoy().length > 1 ? 's' : ''} hoy</button>` : ''}${tareasDe(hoyISO()).length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">🗂️ ${tareasDe(hoyISO()).length} tarea${tareasDe(hoyISO()).length > 1 ? 's' : ''} clave hoy</button>` : ''}${esBodega() && pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div></div>`;
   if (docsMal.length) html += `<div class="aviso">${docsMal.map(d => `⏰ <b>${h(d.tipo)}</b>: ${d.dv < 0 ? 'vencido el ' : 'vence el '}${fFecha(d.venc)}`).join('<br>')}</div>`;
+  html += pendientesHTML();
   const vemenu = ['admin', 'cocina', 'atencion'].includes(S.usuario.rol) && (S.minutas || []).length;
   if (vemenu) {
     const cli = clienteMenuDefault(), hoyM = menuDe(cli, hoyISO());
@@ -541,6 +546,7 @@ async function enviarFormulario(fid) {
     const r = await enviarOEncolar('formulario', { form: fid, datos: d }, f.titulo);
     ls.del('borrador_' + fid);
     if (r.enCola) { modal(`<h3>📶 Guardado en el teléfono</h3><p>No hay señal. Se enviará solo cuando vuelva la conexión.</p><button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`); return; }
+    marcarHecho(fid);
     const malo = r.observaciones && r.observaciones.length;
     modal(`<h3>${malo ? '⚠️' : '✅'} ${h(r.resultado)}</h3>${malo ? `<div class="aviso r">${r.observaciones.map(h).join('<br>')}</div><p class="muted">Se avisó a la administración.</p>` : '<p>Registro enviado correctamente.</p>'}${fid === 'manipulador' && /NO APTO/.test(r.resultado) ? '<div class="aviso r"><b>No manipules alimentos hoy.</b> Avisa a tu jefatura para que te asigne otra tarea.</div>' : ''}${fid === 'vehiculo' && malo ? '<div class="aviso r"><b>No salgas a ruta</b> hasta corregir lo observado y avisar a tu jefatura.</div>' : ''}<button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`);
   } catch (e) { toast(e.message, 5000); }
@@ -861,6 +867,15 @@ function productosVista() {
   $('#pv_q').oninput = pintar; $('#pv_cat').onchange = pintar; pintar();
 }
 
+/* ═════════════════════ Lo que me toca llenar ═════════════════════ */
+function pendientesHTML() {
+  const p = S.pendientes || []; if (!p.length) return '';
+  const meta = p.reduce((a, x) => a + x.meta, 0), hechos = p.reduce((a, x) => a + x.hechos, 0), pct = Math.round(hechos / (meta || 1) * 100);
+  return `<h2>Lo que te toca llenar</h2><div class="card tareas"><div style="display:flex;justify-content:space-between;align-items:center"><b>${pct === 100 ? '✅ ¡Todo al día!' : `Llevas ${hechos} de ${meta}`}</b><small class="muted">${pct}%</small></div><div class="prog"><i style="width:${pct}%"></i></div>
+    <div class="lista">${p.map(x => { const ok = x.hechos >= x.meta; return `<div class="it ${ok ? 'ok' : ''}" onclick="${x.f === 'ventasTAF' ? 'ir(ventasVista)' : `ir(formulario,'${x.f}')`}"><span style="font-size:22px">${ok ? '✅' : x.icono}</span><div class="c"><b>${h(x.titulo)}</b><small>${x.per === 'semana' ? 'Una vez por semana' : 'Hoy'}${x.nota ? ' · ' + h(x.nota) : ''}</small></div><span class="badge ${ok ? 'b-ok' : 'b-a'}">${x.hechos}/${x.meta}</span></div>`; }).join('')}</div></div>`;
+}
+function marcarHecho(f) { const x = (S.pendientes || []).find(p => p.f === f); if (x && x.hechos < x.meta) { x.hechos++; ls.set('sesion', S); } }
+
 /* ═════════════════════ Calendario de encargos ═════════════════════ */
 const CAL = { y: new Date().getFullYear(), m: new Date().getMonth(), sel: '', enc: [] };
 const puedeEncargar = () => ['admin', 'atencion', 'cocina', 'bodega'].includes(S.usuario.rol);
@@ -1078,7 +1093,7 @@ async function guardarVentas() {
   const platos = $$('#vt_t tr, #vt_w tr').filter(tr => $('.vt_nom', tr)).map(tr => ({ plato: $('.vt_nom', tr).value.trim(), v: $('.vt_v', tr).value, m: $('.vt_m', tr).value, p: $('.vt_p', tr).value }));
   if (!platos.some(p => p.plato && (p.v || p.m || p.p))) return toast('Ingresa al menos un plato con cantidades');
   try {
-    const r = await api('ventaTAF', { fecha: VT.f, platos }, { txt: 'Guardando…' }); VT.datos = r.ventas; toast('✅ Ventas del día guardadas'); pintarResumenVentas();
+    const r = await api('ventaTAF', { fecha: VT.f, platos }, { txt: 'Guardando…' }); VT.datos = r.ventas; if (VT.f === hoyISO()) marcarHecho('ventasTAF'); toast('✅ Ventas del día guardadas'); pintarResumenVentas();
     $('#vt_desc').innerHTML = r.descuento.length ? `<div class="aviso v">📦 Se descontó de bodega por los platos wok: ${r.descuento.map(d => `<b>${h(d.n)}</b> ${n0(d.cant)} ${h(d.u)}`).join(' · ')}</div>` : '';
     S.stock = null;
   }
@@ -1200,12 +1215,13 @@ async function cambiarPin() { try { await api('cambiarPin', { actual: $('#pin1')
 /* ═════════════════════ Panel de administración ═════════════════════ */
 async function resumenVista() {
   pantalla('Resumen del día', '<p class="muted">Cargando…</p>');
-  let r; try { r = await api('resumen'); } catch (e) { return toast(e.message); }
+  let r, cu = []; try { [r, cu] = await Promise.all([api('resumen'), api('cumplimiento', {}, { mudo: true }).catch(() => [])]); } catch (e) { return toast(e.message); }
   S.stock = null;
   const alertasPor = b => r.alertas.filter(a => a.b === b);
   pantalla('Resumen del día', `
   <div class="kpis"><div class="kpi"><small>Valor total en bodegas</small><b>${peso(r.valor)}</b></div><div class="kpi"><small>Recepciones hoy</small><b>${r.recepcionesHoy.length}</b></div><div class="kpi"><small>Salidas hoy (líneas)</small><b>${r.salidasHoy.length}</b></div><div class="kpi"><small>Registros con observación</small><b style="color:${r.forms.some(f => f.obs) ? 'var(--r)' : 'inherit'}">${r.forms.reduce((a, f) => a + f.obs, 0)}</b></div></div>
   ${r.documentos.length ? `<h2>Permisos y cursos por vencer</h2><div class="card lista">${r.documentos.map(d => `<div class="it"><div class="c"><b>${h(d.tipo)}</b><small>${h(d.titular)} · ${fFecha(d.venc)}</small></div><span class="badge ${d.estado === 'Vencido' ? 'b-r' : 'b-a'}">${d.dv < 0 ? 'Vencido' : d.dv + ' días'}</span></div>`).join('')}</div>` : ''}
+  ${cu.length ? `<h2>Cumplimiento de hoy por trabajador</h2><div class="card lista">${cu.map(t => `<div class="it" style="cursor:default"><div class="c"><b>${h(t.nombre)}</b><small>${h(ROLES[t.rol] || t.rol)} · ${t.items.filter(x => x.hechos < x.meta).map(x => h(x.titulo)).join(', ') || 'todo listo'}</small><div class="prog"><i style="width:${Math.round(t.hechos / (t.meta || 1) * 100)}%"></i></div></div><span class="badge ${t.hechos >= t.meta ? 'b-ok' : 'b-a'}">${t.hechos}/${t.meta}</span></div>`).join('')}</div>` : ''}
   <h2>Registros de hoy</h2><div class="card lista">${r.forms.map(f => `<div class="it" onclick="ir(registrosVista,'${f.id}')"><div class="c"><b>${f.icono} ${h(f.titulo)}</b>${f.ultimos.map(u => `<small style="display:block;color:var(--r)">⚠ ${h(u.nombre)}: ${h(u.resultado)}${u.nc ? ' — ' + h(u.nc.split('\n')[0]) : ''}</small>`).join('')}</div><div class="num"><b>${f.hoy}</b>${f.obs ? '<br><span class="badge b-r">' + f.obs + ' obs.</span>' : ''}</div></div>`).join('')}</div>
   ${S.config.bodegas.map(b => `<h2>Alertas · ${h(b)}</h2><div class="card lista">${alertasPor(b).length ? alertasPor(b).map(s => `<div class="it"><div class="c"><b>${h(s.n)}</b><small>${s.venc ? 'vence ' + fFecha(s.venc) + ' · ' : ''}mín. ${n0(s.min)}</small></div><div class="num">${n0(s.stock)} ${h(s.u)}<br><span class="badge ${EST[s.estado]}">${h(s.estado)}</span></div></div>`).join('') : '<p class="muted">Todo en orden ✅</p>'}</div>`).join('')}
   ${r.recepcionesHoy.length ? `<h2>Recepciones de hoy</h2><div class="card lista">${r.recepcionesHoy.map(x => `<div class="it"><div class="c"><b>${h(x['Proveedor'])}</b><small>${h(x['Documento'])} ${h(x['Folio'])} · ${h(x['Bodega'])} · ${h(x['Responsable'])}</small></div><span class="badge ${x['Resultado'] === 'Aceptada' ? 'b-ok' : 'b-a'}">${h(x['Resultado'])}</span></div>`).join('')}</div>` : ''}`);
