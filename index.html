@@ -295,8 +295,8 @@ function menuLateral() {
   const G = [
     { g: '', it: [['🏠', 'Inicio', "pila=[];inicio()", 'inicio']] },
     { g: 'Encargos y agenda', it: [['📅', 'Calendario de encargos', "CAL.sel=hoyISO();ir(calendarioVista)", 'calendarioVista'], (S.rutina || []).length && ['admin', 'bodega', 'chofer'].includes(u.rol) ? ['🕒', 'Rutina del día', 'ir(rutinaVista)', 'rutinaVista'] : null] },
-    cocina && (S.minutas || []).length ? { g: 'Cocina y servicio', it: [['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista'], ['admin', 'cocina'].includes(u.rol) ? ['🧺', 'Abastecimiento internados', 'ir(abastVista)', 'abastVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['👩‍🍳', 'Recetario', 'ir(recetarioVista)', 'recetarioVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧮', 'Producción del día', 'ir(produccionVista)', 'produccionVista'] : null] } : null,
-    B ? { g: 'Bodega y stock', it: [['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista'], u.rol === 'bodega' ? ['🧺', 'Abastecimiento internados', 'ir(abastVista)', 'abastVista'] : null] } : null,
+    cocina && (S.minutas || []).length ? { g: 'Cocina y servicio', it: [['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista'], ['admin', 'cocina'].includes(u.rol) ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['👩‍🍳', 'Recetario', 'ir(recetarioVista)', 'recetarioVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧮', 'Producción del día', 'ir(produccionVista)', 'produccionVista'] : null] } : null,
+    B ? { g: 'Bodega y stock', it: [['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], ['🛒', 'Compras de la semana', 'ir(comprasVista)', 'comprasVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista'], u.rol === 'bodega' ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null] } : null,
     { g: 'Inocuidad y prevención', it: f.map(x => [x.icono, x.titulo, `ir(formulario,'${x.id}')`, 'form:' + x.id]) },
     A ? { g: 'Administración', it: [['📊', 'Resumen del día', 'ir(resumenVista)', 'resumenVista'], ['🍽️', 'Raciones del mes y PAE', 'ir(racionesVista)', 'racionesVista'], ['🗂️', 'Registros', 'ir(registrosVista)', 'registrosVista'], ['📒', 'Movimientos', 'ir(movimientosVista)', 'movimientosVista'], ['🧾', 'Recepciones', 'ir(recepcionesVista)', 'recepcionesVista'], ['📑', 'Permisos y cursos', 'ir(documentosVista)', 'documentosVista'], ['👥', 'Usuarios y trabajadores', 'ir(trabajadoresVista)', 'trabajadoresVista'], ['⚙️', 'Configuración', 'ir(configVista)', 'configVista'], ['📗', 'Abrir planilla', 'abrirPlanilla()', '']] } : null,
     { g: 'Mi cuenta', it: [['👤', 'Mi perfil', 'ir(perfil)', 'perfil']] }
@@ -391,12 +391,13 @@ function inicio() {
   let html = `<div class="hero"><div class="hero-foto"></div><small>${h(fecha.charAt(0).toUpperCase() + fecha.slice(1))}</small><b>Hola, ${h(u.nombre.split(' ')[0])} 👋</b><small>${h(u.cargo || ROLES[u.rol] || '')}${u.servicio ? ' · ' + h(u.servicio) : ''}</small>
     <div class="chips">${esBodega() && st.length ? `<button class="hc" onclick="FS.est='Alertas (todas)';ir(stockVista)">📦 ${alertas} alertas de stock</button>` : ''}${esBodega() && vencen ? `<button class="hc" onclick="FS.est='Vence pronto';ir(stockVista)">⏰ ${vencen} por vencer</button>` : ''}${encHoy().length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">📅 ${encHoy().length} encargo${encHoy().length > 1 ? 's' : ''} hoy</button>` : ''}${tareasDe(hoyISO()).length ? `<button class="hc" onclick="CAL.sel=hoyISO();ir(calendarioVista)">🗂️ ${tareasDe(hoyISO()).length} tarea${tareasDe(hoyISO()).length > 1 ? 's' : ''} clave hoy</button>` : ''}${esBodega() && pedirHoy().length ? `<button class="hc" onclick="ir(proveedoresVista)">📞 Hoy se pide a ${h(pedirHoy().join(', '))}</button>` : ''}</div></div>`;
   if (docsMal.length) html += `<div class="aviso">${docsMal.map(d => `⏰ <b>${h(d.tipo)}</b>: ${d.dv < 0 ? 'vencido el ' : 'vence el '}${fFecha(d.venc)}`).join('<br>')}</div>`;
+  if (esBodega()) html += '<div id="alerta_compras"></div>';
   html += pendientesHTML();
   const vemenu = ['admin', 'cocina', 'atencion'].includes(S.usuario.rol) && (S.minutas || []).length;
   if (vemenu) {
     const cli = clienteMenuDefault(), hoyM = menuDe(cli, hoyISO());
     html += `<h2>Menú de hoy</h2><div class="card menu" onclick="ir(menuVista)" style="cursor:pointer"><div style="display:flex;justify-content:space-between"><b>${h(cli)}</b><small class="muted">Semana ${semanaMinuta(hoyISO())} · ver todo ›</small></div>${hoyM.length ? hoyM.filter(x => !/^Ensalada$|Complementos/i.test(x.sv)).slice(0, 4).map(x => `<div class="sv">${h(x.sv)}</div><div class="pl">${h(x.p)}</div>`).join('') : '<p class="muted" style="margin:8px 0 0">Hoy no hay minuta para este servicio.</p>'}</div>
-    <div class="grid" style="margin-top:12px">${tile("ir(menuVista)", '📖', 'Minutas', 'Menú por cliente y semana')}${tile("ir(ventasVista)", '🥡', 'Ventas y merma Take a Food', 'Vendidos, merma y perdidas')}${['admin', 'cocina'].includes(S.usuario.rol) ? tile("ir(recetarioVista)", '👩‍🍳', 'Recetario', 'Receta y preparación por porciones') + tile("ir(produccionVista)", '🧮', 'Producción del día', 'Varias recetas, consolidado y bodega') + tile("ir(abastVista)", '🧺', 'Abastecimiento internados', 'Qué enviar a cada internado') : ''}</div>`;
+    <div class="grid" style="margin-top:12px">${tile("ir(menuVista)", '📖', 'Minutas', 'Menú por cliente y semana')}${tile("ir(ventasVista)", '🥡', 'Ventas y merma Take a Food', 'Vendidos, merma y perdidas')}${['admin', 'cocina'].includes(S.usuario.rol) ? tile("ir(recetarioVista)", '👩‍🍳', 'Recetario', 'Receta y preparación por porciones') + tile("ir(produccionVista)", '🧮', 'Producción del día', 'Varias recetas, consolidado y bodega') + tile("ir(abastVista)", '🧺', 'Raciones y abastecimiento', 'Platos por día y qué enviar') : ''}</div>`;
   }
   html += `<h2>Encargos y agenda</h2><div class="grid">${tile("CAL.sel=hoyISO();ir(calendarioVista)", '📅', 'Calendario de encargos', encHoy().length ? encHoy().length + ' para hoy' : 'Pedidos, eventos y entregas', 'dest')}${(S.rutina || []).length && ['admin', 'bodega', 'chofer'].includes(S.usuario.rol) ? tile("ir(rutinaVista)", '🕒', 'Rutina del día', 'Logística y repartos') : ''}${puedeEncargar() ? tile("editarEncargo(null,hoyISO())", '➕', 'Nuevo encargo', '') : ''}</div>`;
   if (esBodega()) {
@@ -430,6 +431,7 @@ function inicio() {
   html += `<h2>Mi cuenta</h2><div class="grid">${tile("ir(perfil)", '👤', 'Mi perfil', 'Mis registros, cursos y PIN')}</div>
   <div class="pie"><img src="${LOGO}" alt="">${h(S.version || '')}</div>`;
   pantalla(S.config.empresa, html, { home: true });
+  setTimeout(alertaCompras, 0);
   refrescarSilencioso();
 }
 let ultRefresco = 0;
@@ -1076,7 +1078,11 @@ async function fijarSemana(n) {
 function recetasWok() { return [...new Set((S.recetas || []).map(r => r.r))]; }
 let VT = { f: '', datos: [] };
 /* ═════════════════════ Abastecimiento por internado ═════════════════════ */
-let AB = { ini: '', sem: 1, dest: '', dia: false };
+let AB = { ini: '', sem: 1, dest: '', dia: false, min: 'Internados Canela' };
+const MINUTAS_PLAN = ['Internados Canela', 'Internados Illapel', 'Menú particulares'];
+const ORDEN_SV = ['Desayuno', 'Almuerzo', 'Colación', 'Once', 'Cena', 'Ensalada', 'Opción 1', 'Opción 2', 'Hipocalórico'];
+const cortoMin = m => String(m).replace('Internados ', '').replace('Menú particulares', 'Particulares');
+const minDe = x => x || 'Internados Canela';
 const DIAS_AB = ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const SERV_AB = ['Desayuno', 'Almuerzo', 'Once', 'Cena'];
 const RUB_AB = ['VERDURAS Y FRUTAS', 'CARNES', 'ABARROTES'];
@@ -1085,17 +1091,20 @@ const abLunes = k => { const d = new Date(AB.ini + 'T12:00:00'); d.setDate(d.get
 const fCorta = iso => new Date(iso + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
 const abRed = (v, c) => c && c.entera ? Math.ceil(v - 1e-9) : Math.ceil(v * 100 - 1e-6) / 100;
 const puedeAB = () => ['admin', 'bodega', 'cocina'].includes(S.usuario.rol);
+function abInit() { if (!AB.ini) { const s = semanaMinuta(hoyISO()), l = lunesDe(hoyISO()); l.setDate(l.getDate() - 7 * (s - 1)); AB.ini = ISO(l); AB.sem = s; } }
 async function abastVista(recargar = true) {
-  if (!AB.ini) { const s = semanaMinuta(hoyISO()), l = lunesDe(hoyISO()); l.setDate(l.getDate() - 7 * (s - 1)); AB.ini = ISO(l); AB.sem = s; }
+  abInit();
   if (S.abast) pintarAbast(); else pantalla('Abastecimiento internados', '<div class="card"><p class="muted">Cargando requerimientos…</p></div>');
-  if (recargar) { try { S.abast = await api('abastecimiento', {}, { mudo: !!S.abast }); pintarAbast(); } catch (e) { toast(e.message); } }
+  if (recargar) { try { { const _ab = await api('abastecimiento', {}, { mudo: !!S.abast }); S.abast = _ab; } pintarAbast(); } catch (e) { toast(e.message); } }
 }
-function abCalc() {
-  const A = S.abast, D = [...new Set(A.raciones.map(r => r[3]))], rac = {}, cat = {};
-  A.raciones.forEach(r => rac[r[0] + '|' + r[1] + '|' + norm(r[2]) + '|' + r[3]] = r[4]);
+function abCalc(min) {
+  abInit(); min = min || AB.min;
+  const A = S.abast, RR = A.raciones.filter(r => minDe(r[5]) === min), D = [...new Set(RR.map(r => r[3]))], rac = {}, cat = {};
+  const servs = [...new Set(RR.map(r => r[2]))].sort((a, b) => (ORDEN_SV.indexOf(a) + 1 || 99) - (ORDEN_SV.indexOf(b) + 1 || 99));
+  RR.forEach(r => rac[r[0] + '|' + r[1] + '|' + norm(r[2]) + '|' + r[3]] = r[4]);
   A.catalogo.forEach(c => cat[norm(c[0])] = { i: c[0], rubro: c[1] || 'OTROS', ub: c[2], div: Number(c[3]) || 1, uc: c[4], entera: /^S/i.test(c[5]), prov: c[6], prod: c[7] });
   const B = {}, DIA = {}, vacios = {};
-  A.gramajes.forEach(g => {
+  A.gramajes.filter(g => minDe(g[8]) === min).forEach(g => {
     const k = norm(g[4]); if (!cat[k]) cat[k] = { i: g[4], rubro: 'OTROS', ub: 'g', div: 1000, uc: 'kg' };
     if (!g[5]) { (vacios[g[0]] = vacios[g[0]] || []).push(DIAS_AB[g[1]] + ' ' + g[2].toLowerCase() + ': ' + g[4]); return; }
     const fij = {}; String(g[6] || '').split('|').filter(Boolean).forEach(x => { const [d, v] = x.split('='); fij[d] = Number(v); });
@@ -1119,7 +1128,7 @@ function abCalc() {
       });
     });
   });
-  return { D, R, cat, DIA, vacios };
+  return { D, R, cat, DIA, vacios, servs, B };
 }
 function abVal(C, k, d, i, campo) { const ks = k ? [k] : [1, 2, 3, 4]; return ks.reduce((a, s) => a + ((((C.R[s] || {})[d] || {})[i] || {})[campo] || 0), 0); }
 function abIngs(C, k, d) { const s = new Set(); (k ? [k] : [1, 2, 3, 4]).forEach(x => (d ? [d] : C.D).forEach(dd => Object.keys((C.R[x] || {})[dd] || {}).forEach(i => s.add(i)))); return [...s]; }
@@ -1150,7 +1159,7 @@ function pintarAbast() {
     const L = ((C.DIA[k] || {})[d] || []);
     cuerpo = [1, 2, 3, 4, 5, 6, 7].map(di => {
       const del = L.filter(x => x.d === di); if (!del.length) return '';
-      return `<div class="dia-ab"><h3>${DIAS_AB[di]} ${fCorta((() => { const x = new Date(ad(k) + 'T12:00:00'); x.setDate(x.getDate() + di - 1); return ISO(x); })())}</h3>${SERV_AB.map(sv => { const z = del.filter(x => norm(x.sv) === norm(sv)); if (!z.length) return ''; const m = {}; z.forEach(x => m[x.i] = (m[x.i] || 0) + x.q); const pr = [...new Set(z.map(x => x.p).filter(Boolean))], rr = racionesDe({ s: k, d: di, sv })[d] || 0; return `<div class="sv">${sv}${rr ? ' · ' + rr + ' raciones' : ''}</div>${pr.length ? `<div style="margin:2px 0 4px">${pr.map(p => recDe(p) ? `<a href="#" class="btn chico sec" style="display:inline-block;margin:2px 4px 2px 0" onclick="ir(recetaVista,'${h(p)}',${rr || 0});return false">👩‍🍳 ${h(recDe(p)[1])}</a>` : '').join('')}</div>` : ''}<div class="chips-ab">${Object.keys(m).map(i => `<span>${h(C.cat[i].i)} <b>${n0(Math.round(m[i] * 10) / 10)} ${h(C.cat[i].ub)}</b></span>`).join('')}</div>`; }).join('')}</div>`;
+      return `<div class="dia-ab"><h3>${DIAS_AB[di]} ${fCorta((() => { const x = new Date(ad(k) + 'T12:00:00'); x.setDate(x.getDate() + di - 1); return ISO(x); })())}</h3>${C.servs.map(sv => { const z = del.filter(x => norm(x.sv) === norm(sv)); if (!z.length) return ''; const m = {}; z.forEach(x => m[x.i] = (m[x.i] || 0) + x.q); const pr = [...new Set(z.map(x => x.p).filter(Boolean))], rr = racionesDe({ s: k, d: di, sv, m: AB.min })[d] || 0; return `<div class="sv">${sv}${rr ? ' · ' + rr + ' raciones' : ''}</div>${pr.length ? `<div style="margin:2px 0 4px">${pr.map(p => recDe(p) ? `<a href="#" class="btn chico sec" style="display:inline-block;margin:2px 4px 2px 0" onclick="ir(recetaVista,'${h(p)}',${rr || 0});return false">👩‍🍳 ${h(recDe(p)[1])}</a>` : '').join('')}</div>` : ''}<div class="chips-ab">${Object.keys(m).map(i => `<span>${h(C.cat[i].i)} <b>${n0(Math.round(m[i] * 10) / 10)} ${h(C.cat[i].ub)}</b></span>`).join('')}</div>`; }).join('')}</div>`;
     }).join('');
   } else {
     const edit = k && puedeAB();
@@ -1163,9 +1172,10 @@ function pintarAbast() {
   }
   const vac = k ? (C.vacios[k] || []) : [];
   const racionesEd = k && esBodega() ? abRacionesHTML(C, k) : '';
-  pantalla('Abastecimiento internados', `
+  pantalla('Abastecimiento por minuta', `
+  <div class="tabs">${MINUTAS_PLAN.map(m => `<button class="${AB.min === m ? 'on' : ''}" onclick="AB.min='${m}';AB.dest='';AB.dia=false;pintarAbast()">${h(cortoMin(m))}</button>`).join('')}<button onclick="ir(comprasVista)">🛒 Compras y pedidos</button></div>
   <div class="card" style="padding:10px 12px"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><button class="btn gris chico" onclick="abCiclo(-1)">‹</button>
-    <div class="centro"><b>Ciclo del ${fCorta(AB.ini)} al ${fCorta(ISO(fin))}</b><br><small class="muted">Minuta de 4 semanas · Canela</small></div><button class="btn gris chico" onclick="abCiclo(1)">›</button></div></div>
+    <div class="centro"><b>Ciclo del ${fCorta(AB.ini)} al ${fCorta(ISO(fin))}</b><br><small class="muted">Minuta de 4 semanas · ${h(cortoMin(AB.min))}</small></div><button class="btn gris chico" onclick="abCiclo(1)">›</button></div></div>
   <div class="tabs">${semTabs}</div><div class="tabs">${dTabs}</div>
   ${d && k ? `<div class="tabs"><button class="${!AB.dia ? 'on' : ''}" onclick="AB.dia=false;pintarAbast()">Total de la semana</button><button class="${AB.dia ? 'on' : ''}" onclick="AB.dia=true;pintarAbast()">Por día y servicio</button></div>` : ''}
   ${vac.length ? `<div class="aviso">Faltan gramajes en la planilla (no se calculan): ${vac.map(h).join(' · ')}</div>` : ''}
@@ -1176,10 +1186,10 @@ function pintarAbast() {
 }
 function abCiclo(n) { const x = new Date(AB.ini + 'T12:00:00'); x.setDate(x.getDate() + 28 * n); AB.ini = ISO(x); pintarAbast(); }
 function abRacionesHTML(C, k) {
-  const rac = {}; S.abast.raciones.filter(r => r[0] === k).forEach(r => rac[r[1] + '|' + norm(r[2]) + '|' + r[3]] = r[4]);
-  const filas = []; [1, 2, 3, 4, 5, 6, 7].forEach(di => SERV_AB.forEach(sv => filas.push([di, sv])));
+  const rac = {}; S.abast.raciones.filter(r => r[0] === k && minDe(r[5]) === AB.min).forEach(r => rac[r[1] + '|' + norm(r[2]) + '|' + r[3]] = r[4]);
+  const filas = []; [1, 2, 3, 4, 5, 6, 7].forEach(di => C.servs.forEach(sv => filas.push([di, sv])));
   const usados = filas.filter(([di, sv]) => di <= 5 || C.D.some(x => rac[di + '|' + norm(sv) + '|' + x]));
-  return `<details class="card"><summary><b>⚙️ Raciones de la semana ${k}</b> <small class="muted">alumnos por servicio en cada internado</small></summary>
+  return `<details class="card"><summary><b>⚙️ ${AB.min === 'Menú particulares' ? 'Cantidad de platos' : 'Raciones'} de la semana ${k}</b> <small class="muted">${AB.min === 'Menú particulares' ? 'cuántos platos de cada opción por día' : 'alumnos por servicio en cada internado'}</small></summary>
   <div class="scroll"><table class="tabla" id="ab_r"><tr><th>Día</th><th>Servicio</th>${C.D.map(x => `<th class="centro">${h(cortoDest(x))}</th>`).join('')}</tr>
   ${usados.map(([di, sv]) => `<tr data-d="${di}" data-sv="${sv}"><td>${DIAS_AB[di]}</td><td>${sv}</td>${C.D.map(x => `<td class="centro"><input type="number" inputmode="numeric" min="0" data-dest="${h(x)}" value="${rac[di + '|' + norm(sv) + '|' + x] || 0}" style="max-width:70px"></td>`).join('')}</tr>`).join('')}</table></div>
   <div class="row" style="margin-top:10px"><button class="btn sec" onclick="abCopiarLunes()">Copiar lunes a toda la semana</button><button class="btn" onclick="abGuardarRac(${k})">Guardar raciones</button></div>
@@ -1190,7 +1200,7 @@ function abCopiarLunes() {
   $$('#ab_r tr[data-d]').forEach(tr => { if (Number(tr.dataset.d) <= 5) $$('input', tr).forEach(inp => inp.value = lun[tr.dataset.sv + '|' + inp.dataset.dest]); });
 }
 async function abGuardarRac(k) {
-  const filas = []; $$('#ab_r tr[data-d]').forEach(tr => $$('input', tr).forEach(inp => filas.push({ d: Number(tr.dataset.d), sv: tr.dataset.sv, dest: inp.dataset.dest, n: Number(inp.value) || 0 })));
+  const filas = []; $$('#ab_r tr[data-d]').forEach(tr => $$('input', tr).forEach(inp => filas.push({ d: Number(tr.dataset.d), sv: tr.dataset.sv, dest: inp.dataset.dest, n: Number(inp.value) || 0, min: AB.min })));
   try { const r = await api('racionesPlan', { semana: k, filas }, { txt: 'Guardando…' }); S.abast.raciones = r.raciones; toast('✅ Raciones de la semana ' + k + ' guardadas'); pintarAbast(); } catch (e) { toast(e.message); }
 }
 async function abGuardarExc() {
@@ -1199,7 +1209,7 @@ async function abGuardarExc() {
 }
 function abTexto() {
   const C = abCalc(), k = AB.sem, d = AB.dest, l = [];
-  l.push('*Abastecimiento ' + (d ? cortoDest(d) : 'internados Canela') + '*', k ? 'Semana ' + k + ' (' + fCorta(abLunes(k)) + ')' : 'Total 4 semanas desde el ' + fCorta(AB.ini));
+  l.push('*Abastecimiento ' + (d ? cortoDest(d) : cortoMin(AB.min)) + '*', k ? 'Semana ' + k + ' (' + fCorta(abLunes(k)) + ')' : 'Total 4 semanas desde el ' + fCorta(AB.ini));
   abPorRubro(C, abIngs(C, k, d)).forEach(([r, is]) => {
     const z = is.map(i => { const c = C.cat[i], v = d ? abVal(C, k, d, i, 'neto') : C.D.reduce((a, x) => a + abVal(C, k, x, i, 'neto'), 0); return v ? '• ' + c.i + ': ' + n0(abRed(v, c)) + ' ' + c.uc : ''; }).filter(Boolean);
     if (z.length) l.push('', '*' + r + '*', ...z);
@@ -1210,13 +1220,13 @@ function abWhatsapp() { window.open('https://wa.me/?text=' + encodeURIComponent(
 async function abPlanilla() {
   const C = abCalc(), cortos = C.D.map(cortoDest);
   const fila = (k, i) => { const c = C.cat[i], vs = C.D.map(x => abRed(abVal(C, k, x, i, 'neto'), c)), ex = C.D.map(x => abVal(C, k, x, i, 'exc')); return [c.i, c.rubro, c.uc, ...vs, abRed(vs.reduce((a, b) => a + b, 0), c), ...ex, c.prov || '']; };
-  const hojas = [{ nombre: 'Total 4 semanas', titulo: 'Consolidado ciclo del ' + fCorta(AB.ini) + ' · neto (descontando excedentes)',
+  const hojas = [{ nombre: 'Total 4 semanas', titulo: cortoMin(AB.min) + ' · consolidado ciclo del ' + fCorta(AB.ini) + ' · neto (descontando excedentes)',
     enc: ['Ingrediente', 'Rubro', 'Unidad', ...cortos, 'Total ciclo', 'Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
     filas: abPorRubro(C, abIngs(C, 0, '')).flatMap(([, is]) => is.map(i => { const c = C.cat[i], vs = C.D.map(x => abRed(abVal(C, 0, x, i, 'neto'), c)), ws = [1, 2, 3, 4].map(k => abRed(C.D.reduce((a, x) => a + abVal(C, k, x, i, 'neto'), 0), c)); return [c.i, c.rubro, c.uc, ...vs, abRed(vs.reduce((a, b) => a + b, 0), c), ...ws]; })) }];
   [1, 2, 3, 4].forEach(k => hojas.push({ nombre: 'Semana ' + k, titulo: 'Semana ' + k + ' · lunes ' + fCorta(abLunes(k)),
     enc: ['Ingrediente', 'Rubro', 'Unidad', ...cortos.map(x => x + ' a enviar'), 'Total a enviar', ...cortos.map(x => 'Excedente ' + x), 'Proveedor'],
     filas: abPorRubro(C, abIngs(C, k, '')).flatMap(([, is]) => is.map(i => fila(k, i))) }));
-  try { const r = await api('planillaAbast', { titulo: 'ciclo ' + AB.ini, hojas }, { txt: 'Creando planilla en Drive…' }); modal(`<h3>📄 Planilla creada</h3><p>Quedó en App CleanFood › Planillas generadas › Abastecimiento internados.</p><a class="btn full" target="_blank" href="${h(r.url)}">Abrir planilla</a><button class="btn gris full" style="margin-top:8px" onclick="cerrarModal()">Cerrar</button>`); } catch (e) { toast(e.message); }
+  try { const r = await api('planillaAbast', { titulo: cortoMin(AB.min) + ' ciclo ' + AB.ini, hojas }, { txt: 'Creando planilla en Drive…' }); modal(`<h3>📄 Planilla creada</h3><p>Quedó en App CleanFood › Planillas generadas › Abastecimiento internados.</p><a class="btn full" target="_blank" href="${h(r.url)}">Abrir planilla</a><button class="btn gris full" style="margin-top:8px" onclick="cerrarModal()">Cerrar</button>`); } catch (e) { toast(e.message); }
 }
 function abSalida() {
   const C = abCalc(), k = AB.sem, d = AB.dest, items = [], sin = [];
@@ -1232,13 +1242,13 @@ let RC = { q: '', cat: 'Plato de fondo' };
 const recDe = k => (S.abast && S.abast.recetario || []).find(r => r[0] === k);
 function recIngs(k) {
   const occ = {}, ub = {}; (S.abast.catalogo || []).forEach(c => ub[norm(c[0])] = c[2]);
-  S.abast.gramajes.filter(g => g[7] === k).forEach(g => { const o = g[0] + '|' + g[1] + '|' + g[2]; const m = (occ[o] = occ[o] || {}); const i = norm(g[4]); m[i] = m[i] || { i: g[4], q: 0, grupo: g[3] }; m[i].q += Number(g[5]) || 0; });
+  S.abast.gramajes.filter(g => g[7] === k).forEach(g => { const o = minDe(g[8]) + '|' + g[0] + '|' + g[1] + '|' + g[2]; const m = (occ[o] = occ[o] || {}); const i = norm(g[4]); m[i] = m[i] || { i: g[4], q: 0, grupo: g[3] }; m[i].q += Number(g[5]) || 0; });
   const ocs = Object.keys(occ).sort((a, b) => a.localeCompare(b, 'es', { numeric: true })), lista = {};
   ocs.forEach(o => Object.values(occ[o]).forEach(x => { const k2 = norm(x.i); (lista[k2] = lista[k2] || { i: x.i, grupo: x.grupo, vals: [] }).vals.push(x.q); }));
   const ings = Object.values(lista).map(x => { const c = {}; x.vals.forEach(v => c[v] = (c[v] || 0) + 1); const pp = Number(Object.keys(c).sort((a, b) => c[b] - c[a])[0]); return { i: x.i, grupo: x.grupo, pp, varia: [...new Set(x.vals)].length > 1 ? [...new Set(x.vals)] : null, ub: ub[norm(x.i)] || 'g' }; });
-  return { ocs: ocs.map(o => { const [s, d, sv] = o.split('|'); return { s: Number(s), d: Number(d), sv }; }), ings };
+  return { ocs: ocs.map(o => { const [m, s, d, sv] = o.split('|'); return { m, s: Number(s), d: Number(d), sv }; }), ings };
 }
-function racionesDe(oc) { const m = {}; (S.abast.raciones || []).filter(r => r[0] === oc.s && r[1] === oc.d && norm(r[2]) === norm(oc.sv)).forEach(r => m[r[3]] = Number(r[4]) || 0); return m; }
+function racionesDe(oc) { const m = {}; (S.abast.raciones || []).filter(r => r[0] === oc.s && r[1] === oc.d && norm(r[2]) === norm(oc.sv) && (!oc.m || minDe(r[5]) === oc.m)).forEach(r => m[r[3]] = Number(r[4]) || 0); return m; }
 function fCant(v, ub) {
   const u = String(ub || '').toLowerCase();
   if (/^g/.test(u) && !/ml/.test(u)) return v >= 1000 ? n0(Math.round(v / 10) / 100) + ' kg' : n0(Math.round(v * 10) / 10) + ' g';
@@ -1247,12 +1257,12 @@ function fCant(v, ub) {
   return n0(Math.round(v * 10) / 10) + ' ' + h(u);
 }
 async function recetarioVista() {
-  if (!S.abast) { pantalla('Recetario', '<div class="card"><p class="muted">Cargando recetas…</p></div>'); try { S.abast = await api('abastecimiento'); } catch (e) { return toast(e.message); } }
+  if (!S.abast) { pantalla('Recetario', '<div class="card"><p class="muted">Cargando recetas…</p></div>'); try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
   pintarRecetario();
 }
 function hoyRecetas() {
   const s = semanaMinuta(hoyISO()), d = (new Date(hoyISO() + 'T12:00:00').getDay() + 6) % 7 + 1, vistos = new Set(), out = [];
-  S.abast.gramajes.forEach(g => { if (g[0] === s && g[1] === d && g[7] && !vistos.has(g[7] + g[2])) { vistos.add(g[7] + g[2]); out.push({ k: g[7], sv: g[2] }); } });
+  S.abast.gramajes.forEach(g => { if (g[0] === s && g[1] === d && g[7] && !vistos.has(g[7] + g[2] + g[8])) { vistos.add(g[7] + g[2] + g[8]); out.push({ k: g[7], sv: g[2], m: minDe(g[8]) }); } });
   return out.filter(x => (recDe(x.k) || [])[2] === 'Plato de fondo' || (recDe(x.k) || [])[2] === 'Ensalada');
 }
 function pintarRecetario() {
@@ -1260,7 +1270,7 @@ function pintarRecetario() {
   const lista = R.filter(r => q ? nkR(r[1]).includes(q) : r[2] === RC.cat).sort((a, b) => a[1].localeCompare(b[1]));
   const hoy = hoyRecetas();
   pantalla('Recetario', `
-  ${hoy.length && !q ? `<div class="card"><h3>👩‍🍳 Hoy en Canela</h3><div class="lista">${hoy.map(x => { const r = recDe(x.k); return `<div class="it" onclick="ir(recetaVista,'${h(x.k)}')"><span style="font-size:20px">${r[2] === 'Ensalada' ? '🥗' : '🍲'}</span><div class="c"><b>${h(r[1])}</b><small>${h(x.sv)} · ${r[2]}</small></div><span class="muted">›</span></div>`; }).join('')}</div></div>` : ''}
+  ${hoy.length && !q ? `<div class="card"><h3>👩‍🍳 Hoy se prepara</h3><div class="lista">${hoy.map(x => { const r = recDe(x.k); return `<div class="it" onclick="ir(recetaVista,'${h(x.k)}')"><span style="font-size:20px">${r[2] === 'Ensalada' ? '🥗' : '🍲'}</span><div class="c"><b>${h(r[1])}</b><small>${h(cortoMin(x.m))} · ${h(x.sv)} · ${r[2]}</small></div><span class="muted">›</span></div>`; }).join('')}</div></div>` : ''}
   <div class="filtros"><input id="rc_q" placeholder="🔎 Buscar receta" value="${h(RC.q)}"><button class="btn sec" style="flex:0 0 auto" onclick="ir(produccionVista)">🧮 Producción (varias recetas)</button></div>
   ${q ? '' : `<div class="tabs">${CAT_R.map(c => `<button class="${RC.cat === c ? 'on' : ''}" onclick="RC.cat='${c}';pintarRecetario()">${c === 'Plato de fondo' ? 'Platos de fondo' : c === 'Ensalada' ? 'Ensaladas' : c === 'Postre' ? 'Postres' : c === 'Jugo' ? 'Jugos' : c}</button>`).join('')}</div>`}
   <div class="card"><div class="lista">${lista.length ? lista.map(r => { const I = recIngs(r[0]); return `<div class="it" onclick="ir(recetaVista,'${h(r[0])}')"><div class="c"><b>${h(r[1])}</b><small>${I.ings.length} ingredientes${r[3] ? ' · ⏱ ' + r[3] + ' min' : ''} · ${I.ocs.length} ${I.ocs.length > 1 ? 'veces' : 'vez'} en el ciclo</small></div><span class="muted">›</span></div>`; }).join('') : '<p class="muted centro">Sin recetas.</p>'}</div></div>`);
@@ -1268,14 +1278,14 @@ function pintarRecetario() {
 }
 let RV = { k: '', n: 0, hechos: {} };
 async function recetaVista(k, n) {
-  if (!S.abast) { try { S.abast = await api('abastecimiento'); } catch (e) { return toast(e.message); } }
+  if (!S.abast) { try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
   const r = recDe(k); if (!r) return toast('Receta no encontrada');
   const I = recIngs(k), oc = I.ocs[0], rac = oc ? racionesDe(oc) : {}, tot = Object.values(rac).reduce((a, b) => a + b, 0);
   if (RV.k !== k) RV = { k, n: n || tot || 10, hechos: {} }; else if (n) RV.n = n;
   const N = Number(RV.n) || 0, pasos = r[4].split('\n').filter(Boolean), pcc = r[5].split('\n').filter(Boolean);
   pantalla(r[1], `
   <div class="card"><div class="muted" style="font-size:13.5px">${h(r[2])}${r[3] ? ' · ⏱ ' + r[3] + ' min' : ''}</div>
-    <div class="chips-ab" style="margin-top:8px">${I.ocs.map(o => `<span>Semana ${o.s} · ${DIAS_AB[o.d]} · ${h(o.sv.toLowerCase())}</span>`).join('')}</div></div>
+    <div class="chips-ab" style="margin-top:8px">${I.ocs.map(o => `<span>${h(cortoMin(o.m))} · S${o.s} · ${DIAS_AB[o.d]} · ${h(o.sv.toLowerCase())}</span>`).join('')}</div></div>
   <div class="card"><h3>¿Para cuántas porciones?</h3>
     <div class="row" style="align-items:center"><input id="rv_n" type="number" inputmode="numeric" min="1" value="${N}" style="font-size:22px;font-weight:700;text-align:center;max-width:130px"><div class="muted">porciones<br><small>factor ×${n0(N)}</small></div></div>
     ${Object.keys(rac).length ? `<div class="tabs" style="margin-top:10px">${Object.keys(rac).filter(d => rac[d]).map(d => `<button class="${N === rac[d] ? 'on' : ''}" onclick="RV.n=${rac[d]};recetaVista('${h(k)}')">${h(cortoDest(d))} · ${rac[d]}</button>`).join('')}<button class="${N === tot ? 'on' : ''}" onclick="RV.n=${tot};recetaVista('${h(k)}')">Los 3 · ${tot}</button></div>` : ''}</div>
@@ -1326,13 +1336,13 @@ function prEstado() { if (!PR) PR = ls.get('produccion', null) || { items: [], t
 function prGuardar() { ls.set('produccion', PR); }
 async function produccionVista() {
   prEstado();
-  if (!S.abast) { pantalla('Producción', '<div class="card"><p class="muted">Cargando recetas…</p></div>'); try { S.abast = await api('abastecimiento'); } catch (e) { return toast(e.message); } }
+  if (!S.abast) { pantalla('Producción', '<div class="card"><p class="muted">Cargando recetas…</p></div>'); try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
   pintarProduccion();
 }
-function prCargarDia(f) {
+function prCargarDia(f, min) {
   const s = semanaMinuta(f), d = (new Date(f + 'T12:00:00').getDay() + 6) % 7 + 1, vistos = {}, items = [];
-  S.abast.gramajes.forEach(g => { if (g[0] === s && g[1] === d && g[7] && !vistos[g[7]]) { vistos[g[7]] = 1; const rac = racionesDe({ s, d, sv: g[2] }); items.push({ k: g[7], n: Object.values(rac).reduce((a, b) => a + b, 0) || 1, sv: g[2] }); } });
-  if (!items.length) return toast('Ese día no tiene minuta en Canela');
+  S.abast.gramajes.forEach(g => { const m = minDe(g[8]); if (min && m !== min) return; if (g[0] === s && g[1] === d && g[7] && !vistos[g[7] + m]) { vistos[g[7] + m] = 1; const rac = racionesDe({ s, d, sv: g[2], m }); const n = Object.values(rac).reduce((a, b) => a + b, 0); if (n) items.push({ k: g[7], n, sv: cortoMin(m) + ' · ' + g[2] }); } });
+  if (!items.length) return toast('Ese día no tiene minuta con raciones');
   PR.items = items; PR.fecha = f; prGuardar(); pintarProduccion(); toast('✅ Cargado el menú del ' + fCorta(f) + ' (' + items.length + ' recetas)');
 }
 function prAgregar(k, n) { prEstado(); if (PR.items.some(x => x.k === k)) { toast('Ya está en producción'); return; } PR.items.push({ k, n: Number(n) || 10 }); prGuardar(); toast('✅ Agregada a producción'); }
@@ -1363,7 +1373,7 @@ function pintarProduccion() {
     ${no.length ? `<div class="card"><h3>Ingredientes sin producto en bodega</h3><p class="muted" style="font-size:13px;margin-top:0">No se descuentan del stock hasta crearlos como producto.</p><div class="chips-ab">${no.map(c => `<span>${h(c.i)} <b>${fCant(c.tot, c.ub)}</b></span>`).join('')}</div></div>` : ''}`;
   }
   pantalla('Producción', `
-  <div class="card"><div class="row" style="align-items:flex-end;gap:8px;flex-wrap:wrap"><div style="flex:1;min-width:150px"><label class="l" style="margin-top:0">Cargar el menú de Canela del día</label><input id="pr_f" type="date" value="${h(P.fecha || hoyISO())}"></div><button class="btn sec" style="flex:0 0 auto" onclick="prCargarDia($('#pr_f').value)">Cargar menú</button></div>
+  <div class="card"><div class="row" style="align-items:flex-end;gap:8px;flex-wrap:wrap"><div style="flex:1;min-width:150px"><label class="l" style="margin-top:0">Cargar el menú del día</label><input id="pr_f" type="date" value="${h(P.fecha || hoyISO())}"></div><div style="flex:0 0 auto;min-width:150px">${selectHTML('pr_m', MINUTAS_PLAN, P.min || '', 'Todas las minutas')}</div><button class="btn sec" style="flex:0 0 auto" onclick="PR.min=$('#pr_m').value;prCargarDia($('#pr_f').value,PR.min)">Cargar menú</button></div>
     <div class="row" style="margin-top:10px;gap:8px;flex-wrap:wrap"><input id="pr_add" list="dl-rec" placeholder="+ Agregar otra receta…" style="flex:1;min-width:180px"><input id="pr_n" type="number" inputmode="numeric" placeholder="Porciones" style="max-width:110px"><button class="btn sec" style="flex:0 0 auto" onclick="prAgregarInput()">Agregar</button></div>
     <datalist id="dl-rec">${(S.abast.recetario || []).map(r => `<option value="${h(r[1])}">`).join('')}</datalist>
     ${P.items.length ? `<p class="muted" style="font-size:13px;margin:10px 0 0">${P.items.length} recetas · ${n0(P.items.reduce((a, x) => a + (Number(x.n) || 0), 0))} porciones en total · <a href="#" onclick="if(confirm('¿Vaciar la producción?')){PR.items=[];prGuardar();pintarProduccion()}return false">vaciar</a></p>` : ''}</div>
@@ -1384,6 +1394,83 @@ async function prPlanilla() {
     { nombre: 'Consolidado', titulo: 'Consolidado de ingredientes', enc: ['Rubro', 'Ingrediente', 'Total', 'Se usa en'], filas: con.map(c => [c.cat.rubro, c.i, num(c.tot, c.ub), [...new Set(c.en)].join(' · ')]) },
     { nombre: 'Productos bodega', titulo: 'Productos de bodega a ocupar', enc: ['Producto', 'Ingrediente', 'Gramos / ml', 'Unidad de bodega', 'Cantidad'], filas: con.map(c => { const p = c.cat.prod && (S.productos || []).find(x => x.c === c.cat.prod); return [p ? p.n : '(sin producto en bodega)', c.i, Math.round(c.tot * 10) / 10, p ? p.u : c.cat.uc, Math.ceil(c.tot / (c.cat.div || 1) * 100) / 100]; }) }];
   try { const r = await api('planillaAbast', { nombre: 'Producción ' + (PR.fecha || hoyISO()), carpeta: 'Producción', hojas }, { txt: 'Creando planilla en Drive…' }); modal(`<h3>📄 Planilla creada</h3><p>Tiene 3 pestañas: Recetas, Consolidado y Productos bodega. Quedó en App CleanFood › Planillas generadas › Producción.</p><a class="btn full" target="_blank" href="${h(r.url)}">Abrir planilla</a><button class="btn gris full" style="margin-top:8px" onclick="cerrarModal()">Cerrar</button>`); } catch (e) { toast(e.message); }
+}
+/* ═════════════════════ Compras y pedidos: cruce minuta × raciones × stock, por semana ═════════════════════ */
+let CP = { w: 1, todo: false };
+const lunesISO = (iso, mas = 0) => { const d = lunesDe(iso); d.setDate(d.getDate() + 7 * mas); return ISO(d); };
+function cpSemanas() { return [0, 1, 2, 3].map(i => lunesISO(hoyISO(), i)); }
+function cpReq(lunes, desde) {
+  const k = semanaMinuta(lunes), out = {};
+  MINUTAS_PLAN.forEach(m => {
+    const C = abCalc(m);
+    C.D.forEach(d => ((C.DIA[k] || {})[d] || []).forEach(x => {
+      if (x.d < desde) return; const c = C.cat[x.i];
+      const o = (out[x.i] = out[x.i] || { i: c.i, ub: c.ub, div: c.div || 1, uc: c.uc, prod: c.prod, prov: c.prov, rubro: c.rubro, base: 0, por: {} });
+      o.base += x.q; o.por[m] = (o.por[m] || 0) + x.q;
+    }));
+  });
+  (S.abast.excedentes || []).filter(e => e[0] === lunes).forEach(e => { const o = out[norm(e[2])]; if (o) o.base = Math.max(0, o.base - Number(e[3]) * o.div); });
+  return out;
+}
+function cpCalc() {
+  const W = cpSemanas(), hoyD = (new Date(hoyISO() + 'T12:00:00').getDay() + 6) % 7 + 1;
+  const reqs = W.map((l, i) => cpReq(l, i === 0 ? hoyD : 1)), keys = new Set(); reqs.forEach(r => Object.keys(r).forEach(k => keys.add(k)));
+  const filas = [...keys].map(k => {
+    const ref = reqs.find(r => r[k])[k], p = ref.prod && (S.productos || []).find(x => x.c === ref.prod);
+    const okU = p && norm(p.u) === norm(ref.uc), st = okU ? (S.stock || []).filter(s => s.c === p.c).reduce((a, s) => a + Number(s.stock || 0), 0) : 0;
+    let disp = st; const sem = reqs.map(r => { const need = r[k] ? r[k].base / ref.div : 0, proy = disp, pedir = Math.max(0, need - disp); disp = Math.max(0, disp - need); return { need, proy, pedir, por: r[k] ? r[k].por : {} }; });
+    return { k, i: ref.i, uc: ref.uc, ub: ref.ub, div: ref.div, rubro: ref.rubro || 'OTROS', p: okU ? p : null, prov: ref.prov || (p && p.prov) || '', st, sem };
+  });
+  return { W, filas };
+}
+const cpRed = (v, u) => /kg|^l$/i.test(String(u).trim()) ? Math.ceil(v * 100 - 1e-6) / 100 : Math.ceil(v - 1e-9);
+function cpPedirSemana(X, w) { return X.filas.filter(f => f.sem[w].pedir > 0.0001); }
+async function comprasVista() {
+  if (!S.abast) { pantalla('Compras y pedidos', '<div class="card"><p class="muted">Calculando…</p></div>'); try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
+  pintarCompras();
+}
+function pintarCompras() {
+  const X = cpCalc(), w = CP.w;
+  const tabs = X.W.map((l, i) => `<button class="${w === i ? 'on' : ''}" onclick="CP.w=${i};pintarCompras()">${i === 0 ? 'Esta semana' : i === 1 ? '⭐ Próxima' : 'Semana'} · ${fCorta(l)}</button>`).join('') + `<button class="${w === 9 ? 'on' : ''}" onclick="CP.w=9;pintarCompras()">🔀 Cruce 4 semanas</button>`;
+  let cuerpo = '';
+  if (w === 9) {
+    const l = X.filas.filter(f => f.sem.some(s => s.pedir > 0.0001)), g = {}; l.forEach(f => (g[f.rubro] = g[f.rubro] || []).push(f));
+    const rub = Object.keys(g).sort((a, b) => (RUB_AB.indexOf(a) + 1 || 9) - (RUB_AB.indexOf(b) + 1 || 9));
+    cuerpo = `<div class="card"><p class="muted" style="font-size:13px;margin-top:0">Qué hay que pedir cada semana después de descontar el stock actual. Lo que sobra de una semana se usa en la siguiente.</p><div class="scroll"><table class="tabla ab"><tr><th>Ingrediente</th><th class="num">Stock hoy</th>${X.W.map((l, i) => `<th class="num">${i === 0 ? 'Esta' : fCorta(l)}<br><small>sem. ${semanaMinuta(l)}</small></th>`).join('')}</tr>
+    ${rub.map(r => `<tr class="grupo"><td colspan="${2 + X.W.length}">${h(r)}</td></tr>` + g[r].sort((a, b) => a.i.localeCompare(b.i)).map(f => `<tr><td><b>${h(f.i)}</b><br><small class="muted">${h(f.uc)}${f.prov ? ' · ' + h(f.prov) : ''}</small></td><td class="num">${f.p ? n0(f.st) : '–'}</td>${f.sem.map(s => `<td class="num" style="color:${s.pedir ? 'var(--r)' : 'var(--ok)'}">${s.pedir ? '<b>' + n0(cpRed(s.pedir, f.uc)) + '</b>' : s.need ? '✓' : '–'}</td>`).join('')}</tr>`).join('')).join('')}</table></div></div>`;
+  } else {
+    const lunes = X.W[w], lista = CP.todo ? X.filas.filter(f => f.sem[w].need > 0) : cpPedirSemana(X, w), g = {};
+    lista.forEach(f => (g[f.prov || 'Sin proveedor asignado'] = g[f.prov || 'Sin proveedor asignado'] || []).push(f));
+    const provs = Object.keys(g).sort((a, b) => (a === 'Sin proveedor asignado') - (b === 'Sin proveedor asignado') || a.localeCompare(b));
+    const rac = MINUTAS_PLAN.map(m => { const k = semanaMinuta(lunes); const t = (S.abast.raciones || []).filter(r => minDe(r[5]) === m && r[0] === k).reduce((a, r) => a + (Number(r[4]) || 0), 0); return `<span>${h(cortoMin(m))} <b>${n0(t)}</b></span>`; }).join('');
+    cuerpo = `<div class="card"><b>Semana del ${fCorta(lunes)}</b> <small class="muted">· semana ${semanaMinuta(lunes)} de la minuta${w === 0 ? ' · desde hoy' : ''}</small>
+      <div class="chips-ab" style="margin-top:6px"><span>Raciones y platos de la semana:</span>${rac}</div>
+      <p style="margin:8px 0 0">${cpPedirSemana(X, w).length ? `Hay que pedir <b>${cpPedirSemana(X, w).length} ingredientes</b> a <b>${new Set(cpPedirSemana(X, w).map(f => f.prov || '?')).size} proveedores</b>.` : '✅ El stock alcanza para esta semana.'}</p>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px"><input type="checkbox" ${CP.todo ? 'checked' : ''} onchange="CP.todo=this.checked;pintarCompras()" style="width:18px;height:18px"> Ver también lo que el stock ya cubre</label></div>
+    ${provs.map(pv => { const pvo = (S.proveedores || []).find(x => norm(x.nombre) === norm(pv)); const pre = {}; g[pv].forEach(f => { if (f.p && f.sem[w].pedir > 0) pre[f.p.c] = cpRed(f.sem[w].pedir, f.p.u); });
+      return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>${h(pv)}</b>${pvo ? `<br><small class="muted">Pedido: ${h(pvo.pedido || '—')} · Llega: ${h(pvo.llegada || '—')}</small>` : ''}</div>${pvo && Object.keys(pre).length ? `<button class="btn chico" style="flex:0 0 auto" onclick='ir(pedidoVista,${JSON.stringify(pvo.nombre)},${JSON.stringify(pre)})'>🛒 Hacer pedido</button>` : `<button class="btn chico sec" style="flex:0 0 auto" onclick='cpLista(${JSON.stringify(pv)},${w})'>📋 Lista de compra</button>`}</div>
+      <table class="tabla" style="margin-top:6px"><tr><th>Ingrediente</th><th class="num">Necesita</th><th class="num">Stock</th><th class="num">Pedir</th></tr>${g[pv].sort((a, b) => a.i.localeCompare(b.i)).map(f => { const s = f.sem[w]; return `<tr><td><b>${h(f.i)}</b><br><small class="muted">${Object.keys(s.por).map(m => h(cortoMin(m))).join(' · ')}</small></td><td class="num">${n0(cpRed(s.need, f.uc))} ${h(f.uc)}</td><td class="num">${f.p ? n0(Math.round(s.proy * 100) / 100) : '<small class="muted">–</small>'}</td><td class="num" style="color:${s.pedir ? 'var(--r)' : 'var(--ok)'}"><b>${s.pedir ? n0(cpRed(s.pedir, f.uc)) : '✓'}</b></td></tr>`; }).join('')}</table></div>`; }).join('')}`;
+  }
+  pantalla('Compras y pedidos', `<div class="tabs">${tabs}</div>${cuerpo}`, { barra: `<button class="btn gris" onclick="ir(abastVista)">⚙️ Raciones y platos</button><button class="btn" onclick="cpPlanilla()">📄 Planilla</button>` });
+}
+function cpLista(pv, w) {
+  const X = cpCalc(), l = X.filas.filter(f => (f.prov || 'Sin proveedor asignado') === pv && f.sem[w].pedir > 0).sort((a, b) => a.i.localeCompare(b.i));
+  const t = ['*Compra ' + pv.toLowerCase() + ' · semana del ' + fCorta(X.W[w]) + '*', '', ...l.map(f => '• ' + f.i + ': ' + n0(cpRed(f.sem[w].pedir, f.uc)) + ' ' + f.uc)].join('\n');
+  window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
+}
+async function cpPlanilla() {
+  const X = cpCalc(), hojas = X.W.map((l, w) => ({ nombre: 'Semana ' + fCorta(l), titulo: 'Compras semana del ' + fCorta(l) + ' (semana ' + semanaMinuta(l) + ' de la minuta)', enc: ['Proveedor', 'Rubro', 'Ingrediente', 'Unidad', 'Necesita', 'Stock proyectado', 'Pedir', 'Canela', 'Illapel', 'Particulares'],
+    filas: X.filas.filter(f => f.sem[w].need > 0).sort((a, b) => (a.prov || 'zz').localeCompare(b.prov || 'zz') || a.i.localeCompare(b.i)).map(f => { const s = f.sem[w]; return [f.prov || 'Sin proveedor', f.rubro, f.i, f.uc, cpRed(s.need, f.uc), f.p ? Math.round(s.proy * 100) / 100 : '', cpRed(s.pedir, f.uc), ...MINUTAS_PLAN.map(m => s.por[m] ? cpRed(s.por[m] / f.div, f.uc) : '')]; }) }));
+  hojas.push({ nombre: 'Cruce 4 semanas', titulo: 'Qué pedir cada semana', enc: ['Ingrediente', 'Unidad', 'Proveedor', 'Stock hoy', ...X.W.map(l => 'Pedir ' + fCorta(l))], filas: X.filas.filter(f => f.sem.some(s => s.pedir > 0)).sort((a, b) => a.i.localeCompare(b.i)).map(f => [f.i, f.uc, f.prov, f.p ? f.st : '', ...f.sem.map(s => cpRed(s.pedir, f.uc))]) });
+  try { const r = await api('planillaAbast', { nombre: 'Compras ' + X.W[0], carpeta: 'Producción', hojas }, { txt: 'Creando planilla en Drive…' }); modal(`<h3>📄 Planilla de compras creada</h3><p>Una pestaña por semana y el cruce de las 4 semanas.</p><a class="btn full" target="_blank" href="${h(r.url)}">Abrir planilla</a><button class="btn gris full" style="margin-top:8px" onclick="cerrarModal()">Cerrar</button>`); } catch (e) { toast(e.message); }
+}
+async function alertaCompras() {
+  const el = $('#alerta_compras'); if (!el || !esBodega()) return;
+  if (!S.abast) { try { { const _ab = await api('abastecimiento', {}, { mudo: true }); S.abast = _ab; } } catch (e) { return; } }
+  if (!$('#alerta_compras')) return;
+  const X = cpCalc(), l = cpPedirSemana(X, 1), provs = [...new Set(l.map(f => f.prov).filter(Boolean))], hoy = typeof pedirHoy === 'function' ? pedirHoy().filter(p => provs.some(x => norm(x) === norm(p))) : [];
+  const ahora = cpPedirSemana(X, 0);
+  $('#alerta_compras').innerHTML = (l.length || ahora.length) ? `<div class="aviso r" style="cursor:pointer" onclick="CP.w=${ahora.length ? 0 : 1};ir(comprasVista)">🛒 <b>${ahora.length ? 'Falta para esta semana: ' + ahora.length + ' ingredientes. ' : ''}${l.length ? 'Semana del ' + fCorta(X.W[1]) + ': pedir ' + l.length + ' ingredientes a ' + provs.length + ' proveedores.' : ''}</b>${hoy.length ? '<br>Hoy toca pedir a ' + hoy.map(h).join(', ') + '.' : ''} <u>Ver y hacer pedidos ›</u></div>` : '';
 }
 async function ventasVista() {
   VT.f = VT.f || hoyISO();
@@ -1465,11 +1552,12 @@ function sugerido(prov) {
   }).sort((a, b) => b.sug - a.sug || a.p.n.localeCompare(b.p.n));
 }
 let PEDS = [];
-async function pedidoVista(prov) {
+async function pedidoVista(prov, pre) {
   const pv = (S.proveedores || []).find(x => x.nombre === prov) || { nombre: prov };
   const l = sugerido(prov);
+  if (pre) { l.forEach(x => { if (!(x.p.c in pre)) x.sug = 0; }); Object.keys(pre).forEach(c => { const x = l.find(y => y.p.c === c); if (x) x.sug = pre[c]; else { const p = (S.productos || []).find(y => y.c === c); if (p) { const st = (S.stock || []).filter(z => z.c === c).reduce((a, z) => a + Number(z.stock || 0), 0); l.unshift({ p, st, sug: pre[c] }); } } }); l.sort((a, b) => (b.sug > 0) - (a.sug > 0)); }
   pantalla('Pedido a ' + prov, `<div class="card"><b>${h(prov)}</b><br><small class="muted">Pedido: ${h(pv.pedido || '—')} · Llega: ${h(pv.llegada || '—')}</small>
-    <p class="muted" style="font-size:13px;margin:8px 0 0">Sugerido = lo que falta para llegar al doble del mínimo. Ajusta las cantidades antes de enviar.</p></div>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">${pre ? 'Cantidades calculadas desde la minuta y las raciones de la semana, descontando el stock.' : 'Sugerido = lo que falta para llegar al doble del mínimo.'} Ajusta las cantidades antes de enviar.</p></div>
     <div class="card"><table class="tabla vt" id="pd_t"><tr><th>Producto</th><th class="num">Hay</th><th class="centro">Pedir</th></tr>
     ${l.map(x => `<tr data-c="${x.p.c}"><td><b>${h(x.p.n)}</b><br><small class="muted">mín. ${n0(x.p.min)} ${h(x.p.u)}</small></td><td class="num" style="color:${x.p.min && x.st < x.p.min ? 'var(--r)' : ''}">${n0(x.st)}</td><td class="centro"><input class="pd_q" type="number" inputmode="decimal" step="any" value="${x.sug || ''}" placeholder="${h(x.p.u)}"></td></tr>`).join('')}</table>
     <div class="row" style="margin-top:10px"><input id="pd_otro" list="dl-prod" placeholder="+ Otro producto"><button class="btn sec chico" style="flex:0 0 auto" onclick="otroPedido()">Agregar</button></div></div>
