@@ -226,9 +226,12 @@ const peso = x => '$' + Math.round(Number(x || 0)).toLocaleString('es-CL');
 const hoyISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
 const fFecha = s => s ? String(s).slice(0, 10).split('-').reverse().join('-') + (String(s).length > 10 ? ' ' + String(s).slice(11, 16) : '') : '';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-const ls = { get(k, d) { try { const v = localStorage.getItem('cf_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cf_' + k, JSON.stringify(v)); } catch (e) { } }, del(k) { try { localStorage.removeItem('cf_' + k); } catch (e) { } } };
+const ls = { get(k, d) { try { const v = localStorage.getItem('cf_' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem('cf_' + k, JSON.stringify(k === 'sesion' && v && v.abast ? { ...v, abast: undefined } : v)); } catch (e) { } }, del(k) { try { localStorage.removeItem('cf_' + k); } catch (e) { } } };
 
 let S = ls.get('sesion', null); // {token, usuario, ...datos de inicio}
+if (S) delete S.abast;
+window.addEventListener('unhandledrejection', e => { console.error(e.reason); try { toast('⚠️ ' + ((e.reason && e.reason.message) || e.reason), 6000); } catch (x) { } });
+window.addEventListener('error', e => { try { toast('⚠️ ' + e.message, 6000); } catch (x) { } });
 let pila = []; // historial de pantallas
 const ROLES = { admin: 'Administración', bodega: 'Bodega', cocina: 'Cocina', atencion: 'Atención / servicio', chofer: 'Chofer' };
 
@@ -1091,12 +1094,16 @@ const abLunes = k => { const d = new Date(AB.ini + 'T12:00:00'); d.setDate(d.get
 const fCorta = iso => new Date(iso + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
 const abRed = (v, c) => c && c.entera ? Math.ceil(v - 1e-9) : Math.ceil(v * 100 - 1e-6) / 100;
 const puedeAB = () => ['admin', 'bodega', 'cocina'].includes(S.usuario.rol);
-function abInit() { if (!AB.ini) { const s = semanaMinuta(hoyISO()), l = lunesDe(hoyISO()); l.setDate(l.getDate() - 7 * (s - 1)); AB.ini = ISO(l); AB.sem = s; } }
-async function abastVista(recargar = true) {
-  abInit();
-  if (S.abast) pintarAbast(); else pantalla('Abastecimiento internados', '<div class="card"><p class="muted">Cargando requerimientos…</p></div>');
-  if (recargar) { try { { const _ab = await api('abastecimiento', {}, { mudo: !!S.abast }); S.abast = _ab; } pintarAbast(); } catch (e) { toast(e.message); } }
+const planOk = () => S.abast && Array.isArray(S.abast.raciones) && Array.isArray(S.abast.gramajes);
+async function conPlan(titulo, pintar, fn) {
+  const enPantalla = () => pila.length && pila[pila.length - 1][0] === fn;
+  const dibujar = () => { try { if (!(S.abast.gramajes || []).length) return pantalla(titulo, `<div class="card"><h3>Todavía no hay minutas cargadas</h3><p>En Apps Script hay que ejecutar una vez <b>cargarPlanificacion</b> y luego publicar una nueva versión de la implementación.</p><button class="btn" onclick="S.abast=null;ir(${fn.name})">Reintentar</button></div>`); pintar(); } catch (e) { console.error(e); pantalla(titulo, `<div class="card"><h3>⚠️ No se pudo mostrar</h3><p class="muted">${h(e.message)}</p><button class="btn" onclick="S.abast=null;ir(${fn.name})">Reintentar</button></div>`); } };
+  if (planOk()) dibujar(); else pantalla(titulo, '<div class="card"><p class="muted">Cargando minutas y recetas…</p></div>');
+  try { const r = await api('abastecimiento', {}, { mudo: planOk() }); const cambio = !planOk() || JSON.stringify(r) !== JSON.stringify(S.abast); S.abast = r; if (cambio && enPantalla()) dibujar(); }
+  catch (e) { if (!planOk() && enPantalla()) pantalla(titulo, `<div class="card"><h3>⚠️ No se pudo cargar</h3><p class="muted">${h(e.message)}</p><p style="font-size:13px">Si dice que la acción no existe, falta publicar una nueva versión del Apps Script.</p><button class="btn" onclick="ir(${fn.name})">Reintentar</button></div>`); else toast(e.message); }
 }
+function abInit() { if (!AB.ini) { const s = semanaMinuta(hoyISO()), l = lunesDe(hoyISO()); l.setDate(l.getDate() - 7 * (s - 1)); AB.ini = ISO(l); AB.sem = s; } }
+async function abastVista() { abInit(); return conPlan('Raciones y abastecimiento', pintarAbast, abastVista); }
 function abCalc(min) {
   abInit(); min = min || AB.min;
   const A = S.abast, RR = A.raciones.filter(r => minDe(r[5]) === min), D = [...new Set(RR.map(r => r[3]))], rac = {}, cat = {};
@@ -1256,10 +1263,7 @@ function fCant(v, ub) {
   if (/un/.test(u)) return n0(Math.round(v * 10) / 10) + ' un';
   return n0(Math.round(v * 10) / 10) + ' ' + h(u);
 }
-async function recetarioVista() {
-  if (!S.abast) { pantalla('Recetario', '<div class="card"><p class="muted">Cargando recetas…</p></div>'); try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
-  pintarRecetario();
-}
+async function recetarioVista() { return conPlan('Recetario', pintarRecetario, recetarioVista); }
 function hoyRecetas() {
   const s = semanaMinuta(hoyISO()), d = (new Date(hoyISO() + 'T12:00:00').getDay() + 6) % 7 + 1, vistos = new Set(), out = [];
   S.abast.gramajes.forEach(g => { if (g[0] === s && g[1] === d && g[7] && !vistos.has(g[7] + g[2] + g[8])) { vistos.add(g[7] + g[2] + g[8]); out.push({ k: g[7], sv: g[2], m: minDe(g[8]) }); } });
@@ -1278,7 +1282,7 @@ function pintarRecetario() {
 }
 let RV = { k: '', n: 0, hechos: {} };
 async function recetaVista(k, n) {
-  if (!S.abast) { try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
+  if (!planOk()) { try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
   const r = recDe(k); if (!r) return toast('Receta no encontrada');
   const I = recIngs(k), oc = I.ocs[0], rac = oc ? racionesDe(oc) : {}, tot = Object.values(rac).reduce((a, b) => a + b, 0);
   if (RV.k !== k) RV = { k, n: n || tot || 10, hechos: {} }; else if (n) RV.n = n;
@@ -1334,11 +1338,7 @@ function platoLink(txt) {
 let PR = null;
 function prEstado() { if (!PR) PR = ls.get('produccion', null) || { items: [], tab: 'recetas', fecha: hoyISO() }; return PR; }
 function prGuardar() { ls.set('produccion', PR); }
-async function produccionVista() {
-  prEstado();
-  if (!S.abast) { pantalla('Producción', '<div class="card"><p class="muted">Cargando recetas…</p></div>'); try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
-  pintarProduccion();
-}
+async function produccionVista() { prEstado(); return conPlan('Producción', pintarProduccion, produccionVista); }
 function prCargarDia(f, min) {
   const s = semanaMinuta(f), d = (new Date(f + 'T12:00:00').getDay() + 6) % 7 + 1, vistos = {}, items = [];
   S.abast.gramajes.forEach(g => { const m = minDe(g[8]); if (min && m !== min) return; if (g[0] === s && g[1] === d && g[7] && !vistos[g[7] + m]) { vistos[g[7] + m] = 1; const rac = racionesDe({ s, d, sv: g[2], m }); const n = Object.values(rac).reduce((a, b) => a + b, 0); if (n) items.push({ k: g[7], n, sv: cortoMin(m) + ' · ' + g[2] }); } });
@@ -1425,10 +1425,7 @@ function cpCalc() {
 }
 const cpRed = (v, u) => /kg|^l$/i.test(String(u).trim()) ? Math.ceil(v * 100 - 1e-6) / 100 : Math.ceil(v - 1e-9);
 function cpPedirSemana(X, w) { return X.filas.filter(f => f.sem[w].pedir > 0.0001); }
-async function comprasVista() {
-  if (!S.abast) { pantalla('Compras y pedidos', '<div class="card"><p class="muted">Calculando…</p></div>'); try { { const _ab = await api('abastecimiento'); S.abast = _ab; } } catch (e) { return toast(e.message); } }
-  pintarCompras();
-}
+async function comprasVista() { return conPlan('Compras y pedidos', pintarCompras, comprasVista); }
 function pintarCompras() {
   const X = cpCalc(), w = CP.w;
   const tabs = X.W.map((l, i) => `<button class="${w === i ? 'on' : ''}" onclick="CP.w=${i};pintarCompras()">${i === 0 ? 'Esta semana' : i === 1 ? '⭐ Próxima' : 'Semana'} · ${fCorta(l)}</button>`).join('') + `<button class="${w === 9 ? 'on' : ''}" onclick="CP.w=9;pintarCompras()">🔀 Cruce 4 semanas</button>`;
@@ -1466,11 +1463,13 @@ async function cpPlanilla() {
 }
 async function alertaCompras() {
   const el = $('#alerta_compras'); if (!el || !esBodega()) return;
-  if (!S.abast) { try { { const _ab = await api('abastecimiento', {}, { mudo: true }); S.abast = _ab; } } catch (e) { return; } }
+  if (!planOk()) { try { { const _ab = await api('abastecimiento', {}, { mudo: true }); S.abast = _ab; } } catch (e) { return; } }
   if (!$('#alerta_compras')) return;
+  try {
   const X = cpCalc(), l = cpPedirSemana(X, 1), provs = [...new Set(l.map(f => f.prov).filter(Boolean))], hoy = typeof pedirHoy === 'function' ? pedirHoy().filter(p => provs.some(x => norm(x) === norm(p))) : [];
   const ahora = cpPedirSemana(X, 0);
   $('#alerta_compras').innerHTML = (l.length || ahora.length) ? `<div class="aviso r" style="cursor:pointer" onclick="CP.w=${ahora.length ? 0 : 1};ir(comprasVista)">🛒 <b>${ahora.length ? 'Falta para esta semana: ' + ahora.length + ' ingredientes. ' : ''}${l.length ? 'Semana del ' + fCorta(X.W[1]) + ': pedir ' + l.length + ' ingredientes a ' + provs.length + ' proveedores.' : ''}</b>${hoy.length ? '<br>Hoy toca pedir a ' + hoy.map(h).join(', ') + '.' : ''} <u>Ver y hacer pedidos ›</u></div>` : '';
+  } catch (e) { console.error(e); }
 }
 async function ventasVista() {
   VT.f = VT.f || hoyISO();
