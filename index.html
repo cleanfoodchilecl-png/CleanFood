@@ -1419,13 +1419,14 @@ function cpReq(lunes, desde) {
   (S.abast.excedentes || []).filter(e => e[0] === lunes).forEach(e => { const o = out[norm(e[2])]; if (o) o.base = Math.max(0, o.base - Number(e[3]) * o.div); });
   return out;
 }
+const margenCompra = () => Math.max(0, Number(S.config && S.config.margenCompra) || 0);
 function cpCalc() {
-  const W = cpSemanas(), hoyD = (new Date(hoyISO() + 'T12:00:00').getDay() + 6) % 7 + 1;
+  const W = cpSemanas(), fm = 1 + margenCompra() / 100, hoyD = (new Date(hoyISO() + 'T12:00:00').getDay() + 6) % 7 + 1;
   const reqs = W.map((l, i) => cpReq(l, i === 0 ? hoyD : 1)), keys = new Set(); reqs.forEach(r => Object.keys(r).forEach(k => keys.add(k)));
   const filas = [...keys].map(k => {
     const ref = reqs.find(r => r[k])[k], p = ref.prod && (S.productos || []).find(x => x.c === ref.prod);
     const okU = p && norm(p.u) === norm(ref.uc), st = okU ? (S.stock || []).filter(s => s.c === p.c).reduce((a, s) => a + Number(s.stock || 0), 0) : 0;
-    let disp = st; const sem = reqs.map(r => { const need = r[k] ? r[k].base / ref.div : 0, proy = disp, pedir = Math.max(0, need - disp); disp = Math.max(0, disp - need); return { need, proy, pedir, por: r[k] ? r[k].por : {} }; });
+    let disp = st; const sem = reqs.map(r => { const need = r[k] ? r[k].base / ref.div * fm : 0, proy = disp, pedir = Math.max(0, need - disp); disp = Math.max(0, disp - need); return { need, proy, pedir, por: r[k] ? r[k].por : {} }; });
     return { k, i: ref.i, uc: ref.uc, ub: ref.ub, div: ref.div, rubro: ref.rubro || 'OTROS', p: okU ? p : null, prov: ref.prov || (p && p.prov) || '', st, sem };
   });
   return { W, filas };
@@ -1450,6 +1451,7 @@ function pintarCompras() {
     cuerpo = `<div class="card"><b>Semana del ${fCorta(lunes)}</b> <small class="muted">· semana ${semanaMinuta(lunes)} de la minuta${w === 0 ? ' · desde hoy' : ''}</small>
       <div class="chips-ab" style="margin-top:6px"><span>Raciones y platos de la semana:</span>${rac}</div>
       <p style="margin:8px 0 0">${cpPedirSemana(X, w).length ? `Hay que pedir <b>${cpPedirSemana(X, w).length} ingredientes</b> a <b>${new Set(cpPedirSemana(X, w).map(f => f.prov || '?')).size} proveedores</b>.` : '✅ El stock alcanza para esta semana.'}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px"><span style="font-size:14px"><b>Comprar de más:</b></span>${[0, 5, 10, 15, 20].map(v => `<button class="btn chico ${margenCompra() === v ? '' : 'sec'}" style="min-width:52px" ${esAdmin() ? `onclick="cpMargen(${v})"` : 'disabled'}>${v ? '+' + v : '0'} %</button>`).join('')}${esAdmin() ? `<input id="cp_m" type="number" inputmode="decimal" min="0" max="100" placeholder="otro %" value="${[0, 5, 10, 15, 20].includes(margenCompra()) ? '' : margenCompra()}" style="max-width:90px" onchange="cpMargen(this.value)">` : ''}<small class="muted" style="flex-basis:100%">${margenCompra() ? 'Todas las cantidades a pedir incluyen ' + margenCompra() + ' % extra por merma o imprevistos.' : 'Sin margen extra: se pide exactamente lo que piden las minutas.'}${esAdmin() ? '' : ' Lo cambia un administrador.'}</small></div>
       <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:14px"><input type="checkbox" ${CP.todo ? 'checked' : ''} onchange="CP.todo=this.checked;pintarCompras()" style="width:18px;height:18px"> Ver también lo que el stock ya cubre</label></div>
     ${provs.map(pv => { const pvo = (S.proveedores || []).find(x => norm(x.nombre) === norm(pv)); const pre = {}; g[pv].forEach(f => { if (f.p && f.sem[w].pedir > 0) pre[f.p.c] = cpRed(f.sem[w].pedir, f.p.u); });
       return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><b>${h(pv)}</b>${pvo ? `<br><small class="muted">Pedido: ${h(pvo.pedido || '—')} · Llega: ${h(pvo.llegada || '—')}</small>` : ''}</div>${pvo && Object.keys(pre).length ? `<button class="btn chico" style="flex:0 0 auto" onclick='ir(pedidoVista,${JSON.stringify(pvo.nombre)},${JSON.stringify(pre)})'>🛒 Hacer pedido</button>` : `<button class="btn chico sec" style="flex:0 0 auto" onclick='cpLista(${JSON.stringify(pv)},${w})'>📋 Lista de compra</button>`}</div>
@@ -1462,8 +1464,14 @@ function cpLista(pv, w) {
   const t = ['*Compra ' + pv.toLowerCase() + ' · semana del ' + fCorta(X.W[w]) + '*', '', ...l.map(f => '• ' + f.i + ': ' + n0(cpRed(f.sem[w].pedir, f.uc)) + ' ' + f.uc)].join('\n');
   window.open('https://wa.me/?text=' + encodeURIComponent(t), '_blank');
 }
+async function cpMargen(v) {
+  v = Math.max(0, Math.min(100, Number(String(v).replace(',', '.')) || 0));
+  const antes = S.config.margenCompra; S.config.margenCompra = v; pintarCompras();
+  try { await api('config', { config: { margen_compra: String(v) } }, { mudo: true }); ls.set('sesion', S); toast(v ? '✅ Las compras ahora suman ' + v + ' % extra' : '✅ Compras sin margen extra'); }
+  catch (e) { S.config.margenCompra = antes; pintarCompras(); toast(e.message); }
+}
 async function cpPlanilla() {
-  const X = cpCalc(), hojas = X.W.map((l, w) => ({ nombre: 'Semana ' + fCorta(l), titulo: 'Compras semana del ' + fCorta(l) + ' (semana ' + semanaMinuta(l) + ' de la minuta)', enc: ['Proveedor', 'Rubro', 'Ingrediente', 'Unidad', 'Necesita', 'Stock proyectado', 'Pedir', 'Canela', 'Illapel', 'Particulares'],
+  const X = cpCalc(), hojas = X.W.map((l, w) => ({ nombre: 'Semana ' + fCorta(l), titulo: 'Compras semana del ' + fCorta(l) + ' (semana ' + semanaMinuta(l) + ' de la minuta)' + (margenCompra() ? ' · incluye ' + margenCompra() + ' % extra' : ''), enc: ['Proveedor', 'Rubro', 'Ingrediente', 'Unidad', 'Necesita', 'Stock proyectado', 'Pedir', 'Canela', 'Illapel', 'Particulares'],
     filas: X.filas.filter(f => f.sem[w].need > 0).sort((a, b) => (a.prov || 'zz').localeCompare(b.prov || 'zz') || a.i.localeCompare(b.i)).map(f => { const s = f.sem[w]; return [f.prov || 'Sin proveedor', f.rubro, f.i, f.uc, cpRed(s.need, f.uc), f.p ? Math.round(s.proy * 100) / 100 : '', cpRed(s.pedir, f.uc), ...MINUTAS_PLAN.map(m => s.por[m] ? cpRed(s.por[m] / f.div, f.uc) : '')]; }) }));
   hojas.push({ nombre: 'Cruce 4 semanas', titulo: 'Qué pedir cada semana', enc: ['Ingrediente', 'Unidad', 'Proveedor', 'Stock hoy', ...X.W.map(l => 'Pedir ' + fCorta(l))], filas: X.filas.filter(f => f.sem.some(s => s.pedir > 0)).sort((a, b) => a.i.localeCompare(b.i)).map(f => [f.i, f.uc, f.prov, f.p ? f.st : '', ...f.sem.map(s => cpRed(s.pedir, f.uc))]) });
   try { const r = await api('planillaAbast', { nombre: 'Compras ' + X.W[0], carpeta: 'Producción', hojas }, { txt: 'Creando planilla en Drive…' }); modal(`<h3>📄 Planilla de compras creada</h3><p>Una pestaña por semana y el cruce de las 4 semanas.</p><a class="btn full" target="_blank" href="${h(r.url)}">Abrir planilla</a><button class="btn gris full" style="margin-top:8px" onclick="cerrarModal()">Cerrar</button>`); } catch (e) { toast(e.message); }
@@ -1563,7 +1571,7 @@ async function pedidoVista(prov, pre) {
   const l = sugerido(prov);
   if (pre) { l.forEach(x => { if (!(x.p.c in pre)) x.sug = 0; }); Object.keys(pre).forEach(c => { const x = l.find(y => y.p.c === c); if (x) x.sug = pre[c]; else { const p = (S.productos || []).find(y => y.c === c); if (p) { const st = (S.stock || []).filter(z => z.c === c).reduce((a, z) => a + Number(z.stock || 0), 0); l.unshift({ p, st, sug: pre[c] }); } } }); l.sort((a, b) => (b.sug > 0) - (a.sug > 0)); }
   pantalla('Pedido a ' + prov, `<div class="card"><b>${h(prov)}</b><br><small class="muted">Pedido: ${h(pv.pedido || '—')} · Llega: ${h(pv.llegada || '—')}</small>
-    <p class="muted" style="font-size:13px;margin:8px 0 0">${pre ? 'Cantidades calculadas desde la minuta y las raciones de la semana, descontando el stock.' : 'Sugerido = lo que falta para llegar al doble del mínimo.'} Ajusta las cantidades antes de enviar.</p></div>
+    <p class="muted" style="font-size:13px;margin:8px 0 0">${pre ? 'Cantidades calculadas desde la minuta y las raciones de la semana' + (margenCompra() ? ' (+' + margenCompra() + ' % extra)' : '') + ', descontando el stock.' : 'Sugerido = lo que falta para llegar al doble del mínimo.'} Ajusta las cantidades antes de enviar.</p></div>
     <div class="card"><table class="tabla vt" id="pd_t"><tr><th>Producto</th><th class="num">Hay</th><th class="centro">Pedir</th></tr>
     ${l.map(x => `<tr data-c="${x.p.c}"><td><b>${h(x.p.n)}</b><br><small class="muted">mín. ${n0(x.p.min)} ${h(x.p.u)}</small></td><td class="num" style="color:${x.p.min && x.st < x.p.min ? 'var(--r)' : ''}">${n0(x.st)}</td><td class="centro"><input class="pd_q" type="number" inputmode="decimal" step="any" value="${x.sug || ''}" placeholder="${h(x.p.u)}"></td></tr>`).join('')}</table>
     <div class="row" style="margin-top:10px"><input id="pd_otro" list="dl-prod" placeholder="+ Otro producto"><button class="btn sec chico" style="flex:0 0 auto" onclick="otroPedido()">Agregar</button></div></div>
