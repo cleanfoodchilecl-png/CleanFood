@@ -1048,9 +1048,16 @@ async function racionesVista(mes) {
 
 /* ═════════════════════ Minutas (menú de hoy) ═════════════════════ */
 function lunesDe(iso) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d; }
+function isoSeguro(v, def) {
+  const t = String(v || '').trim(); let m;
+  if ((m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+  if ((m = t.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/))) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+  const d = new Date(t); if (t && !isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  return def;
+}
 function semanaMinuta(iso) {
-  const a = lunesDe(String(S.config.minutaSem1 || '2026-08-10').slice(0, 10)), b = lunesDe(iso), n = Math.round((b - a) / 6048e5), c = S.config.minutaCiclo || 4;
-  return ((n % c) + c) % c + 1;
+  const a = lunesDe(isoSeguro(S.config && S.config.minutaSem1, '2026-08-10')), b = lunesDe(isoSeguro(iso, hoyISO())), n = Math.round((b - a) / 6048e5), c = Math.max(1, parseInt(S.config && S.config.minutaCiclo) || 4);
+  const r = ((n % c) + c) % c + 1; return isNaN(r) ? 1 : r;
 }
 function menuDe(cli, iso) { const d = (new Date(iso + 'T12:00:00').getDay() + 6) % 7 + 1, s = semanaMinuta(iso); return (S.minutas || []).filter(m => m.c === cli && m.s === s && m.d === d); }
 function clientesMenu() { return [...new Set((S.minutas || []).map(m => m.c))]; }
