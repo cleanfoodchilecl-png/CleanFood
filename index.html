@@ -619,7 +619,7 @@ function recepcion() {
   if ($('#r_tipo')) $('#r_tipo').addEventListener('change', () => { leerCabecera(); pintarItems(); });
   $('#r_bodega').addEventListener('change', e => $('#r_marca').innerHTML = marcaBodega(e.target.value));
 }
-function rutElegido(inp) { const p = (S.proveedores || []).find(x => x.rut && normRut(x.rut) === normRut(inp.value)); if (p && !$('#r_proveedor').value.trim()) $('#r_proveedor').value = p.nombre; }
+function rutElegido(inp) { const p = (S.proveedores || []).find(x => x.rut && normRut(x.rut) === normRut(inp.value)); if (p) { $('#r_proveedor').value = p.nombre; toast('✅ Proveedor reconocido: ' + p.nombre); } }
 function provElegido(inp) {
   const p = (S.proveedores || []).find(x => norm(x.nombre) === norm(inp.value)); if (p && p.rut) $('#r_rut').value = p.rut;
   if (p) api('pedidos', { proveedor: p.nombre }, { mudo: true }).then(l => {
@@ -653,6 +653,7 @@ function itemHTML(it, i) {
       <div><label class="l" style="margin-top:4px">Lote <small>(opc.)</small></label><input class="i_lote" value="${h(it.lote || '')}"></div>
       <div><label class="l" style="margin-top:4px">Costo unit. ${REC.cab.tipo === 'Boleta' ? 'con IVA' : 'neto'} <small>(opc.)</small></label><input class="i_costo" type="number" inputmode="decimal" value="${h(it.costo || '')}"><small class="muted i_sub" style="display:block"></small></div>
     </div>
+    ${p && (/Prote/i.test(p.cat || '') || it.carne) ? `<label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-size:14px"><input type="checkbox" class="i_carne" style="width:auto" ${(it.carne ?? esCarneRoja(p)) ? 'checked' : ''} onchange="recTotales()"> 🥩 Carne con anticipo de IVA 5 % <small class="muted">(vacuno, cerdo, cordero…)</small></label>` : ''}
     <div class="row" style="margin-top:8px;align-items:center"><label style="flex:0 0 auto;display:flex;gap:6px;align-items:center"><input type="checkbox" class="i_rech" style="width:auto" ${it.rechazado ? 'checked' : ''} onchange="leerItems();setTimeout(pintarItems,0)"> Rechazar</label>${it.rechazado ? `<input class="i_motivo" placeholder="Motivo del rechazo" value="${h(it.motivo || '')}">` : ''}</div>
   </div>`;
 }
@@ -662,7 +663,7 @@ function leerItems() {
   $$('#items .item').forEach(el => {
     const it = REC.items[el.dataset.i]; if (!it) return;
     it.cant = $('.i_cant', el).value; it.venc = $('.i_venc', el).value; it.lote = $('.i_lote', el).value; it.costo = $('.i_costo', el).value;
-    it.rechazado = $('.i_rech', el).checked; const m = $('.i_motivo', el); if (m) it.motivo = m.value;
+    it.rechazado = $('.i_rech', el).checked; if ($('.i_carne', el)) it.carne = $('.i_carne', el).checked; const m = $('.i_motivo', el); if (m) it.motivo = m.value;
     const f = $('.i_factor', el); if (f) it.f = f.value;
   });
 }
@@ -756,8 +757,14 @@ async function guardarRecepcion() {
       S.stock = r.stock;
       (datos.alias || []).forEach(a => { const n = norm(a.n); S.alias = (S.alias || []).filter(x => !(x.n === n && x.rut === normRut(REC.cab.rut))); S.alias.push({ n, rut: normRut(REC.cab.rut), c: a.c, f: a.f }); });
     }
+    if (r.proveedores) S.proveedores = r.proveedores;
+    else if (REC.cab.proveedor) { // sin señal o versión antigua: se recuerda igual en el teléfono
+      const L = S.proveedores = S.proveedores || [], k = L.find(p => (REC.cab.rut && p.rut && normRut(p.rut) === normRut(REC.cab.rut)) || norm(p.nombre) === norm(REC.cab.proveedor));
+      if (k) { if (!k.rut && REC.cab.rut) k.rut = REC.cab.rut; } else L.push({ rut: REC.cab.rut || '', nombre: REC.cab.proveedor, contacto: '', productos: '', pedido: '', llegada: '' });
+    }
+    prepararListas();
     REC = null; ls.del('rec_borrador'); FOTOS.rec = [];
-    if (r.enCola) return modal(`<h3>📶 Guardada en el teléfono</h3><p>Se ingresará a bodega cuando vuelva la señal.</p><button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`);
+    if (r.enCola) { ls.set('sesion', S); return modal(`<h3>📶 Guardada en el teléfono</h3><p>Se ingresará a bodega cuando vuelva la señal.</p><button class="btn full" onclick="cerrarModal();pila=[];inicio()">Listo</button>`); }
     ls.set('sesion', S);
     modal(`<h3>${r.resultado === 'Aceptada' ? '✅' : '⚠️'} Recepción ${h(r.resultado.toLowerCase())}</h3><p class="muted">${h(r.id)}</p>${r.observaciones.length ? '<div class="aviso">' + r.observaciones.map(h).join('<br>') + '</div>' : ''}<p>El stock ya está actualizado.</p><div class="row"><button class="btn sec" onclick="cerrarModal();pila=[[inicio,[]]];ir(stockVista)">Ver stock</button><button class="btn" onclick="cerrarModal();pila=[];inicio()">Listo</button></div>`);
   } catch (e) { toast(e.message, 5000); }
@@ -1791,7 +1798,11 @@ function recFotoFactura() {
 function numCL(s) { s = String(s).trim(); if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) return Number(s.replace(/\./g, '').replace(',', '.')); if (/^\d+,\d+$/.test(s)) return Number(s.replace(',', '.')); return Number(s.replace(/[^\d.]/g, '')); }
 function parsearFacturaTexto(txt) {
   const T = String(txt || ''), lineas = T.split(/\n+/).map(l => l.trim()).filter(Boolean), U = norm(T);
-  const rut = (T.match(/\b(\d{1,2}\.?\d{3}\.?\d{3}\s*-\s*[\dkK])\b/) || [])[1] || '';
+  const ruts = []; lineas.forEach((l, k) => { (l.match(/\b\d{1,2}\.?\d{3}\.?\d{3}\s*-\s*[\dkK]\b/g) || []).forEach(x => ruts.push({ x: x.replace(/\s/g, ''), cli: /SE[NÑ]OR|CLIENTE|RECEPTOR|COMPRADOR|DESTINATARIO/i.test(l + ' ' + (lineas[k - 1] || '')) })); });
+  const propios = new Set((S.config.rutEmpresa ? [S.config.rutEmpresa] : []).concat(ls.get('ruts_propios', [])).map(normRut));
+  const rutE = ruts.find(r => !r.cli && !propios.has(normRut(r.x))), rutC = ruts.find(r => r.cli);
+  if (rutC && rutE) ls.set('ruts_propios', [...new Set(ls.get('ruts_propios', []).concat(normRut(rutC.x)))].slice(-3));
+  const rut = (rutE || ruts.find(r => !propios.has(normRut(r.x))) || {}).x || '';
   const folio = (T.match(/N\s*[°ºo.]?\s*:?\s*(\d{3,10})\b/i) || T.match(/FOLIO\s*:?\s*(\d{3,10})/i) || [])[1] || '';
   const MES = { ENE: 1, FEB: 2, MAR: 3, ABR: 4, MAY: 5, JUN: 6, JUL: 7, AGO: 8, SEP: 9, OCT: 10, NOV: 11, DIC: 12 };
   let fecha = ''; let m = T.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
@@ -1816,15 +1827,16 @@ function parsearFacturaTexto(txt) {
   });
   return { rut: rut.replace(/\s/g, ''), folio, fecha, monto: tots.length ? Math.max(...tots) : '', tipo, prov: lineas[0] || '', items };
 }
+const esCarneRoja = p => !!p && /Prote/i.test(p.cat || '') && /VACUNO|CARNE|CERDO|LOMO|POSTA|ABASTERO|COSTILLAR|PULPA|CORDERO|CHURRASCO|MOLIDA|ASIENTO|PALETA|PLATEADA|HUACHALOMO|OSOBUCO|TAPAPECHO|PUNTA|ENTRAÑA|MALAYA|CHULETA/.test(norm(p.n)) && !/POLLO|PAVO|MERLUZA|PESCADO|CAMAR|ATUN|PREPARAC|COCID|HAMBURG|JAMON|MORTADELA|LONGANIZA|CHORIZO|EMPANADA|QUESO|SALMON|MARISCO/.test(norm(p.n));
 function recTotales() {
   const el = $('#r_tot'); if (!el || !REC) return;
   const boleta = (($('#r_tipo') || {}).value || REC.cab.tipo) === 'Boleta';
-  let suma = 0; $$('#items .item').forEach(it => {
+  let suma = 0, carne = 0; $$('#items .item').forEach(it => {
     const q = Number($('.i_cant', it).value) || 0, c = Number($('.i_costo', it).value) || 0, sub = $('.i_sub', it), rech = $('.i_rech', it).checked;
     if (sub) sub.innerHTML = q && c ? `${rech ? '<s>' : ''}${n0(q)} × ${peso(c)} = <b>${peso(Math.round(q * c))}</b> ${boleta ? 'con IVA · neto ' + peso(Math.round(q * c / 1.19)) : 'neto · con IVA ' + peso(Math.round(q * c * 1.19))}${rech ? '</s>' : ''}` : (c ? (boleta ? 'neto ' + peso(Math.round(c / 1.19)) : 'con IVA ' + peso(Math.round(c * 1.19))) : '');
-    if (rech) return; suma += q * c; });
-  const neto = boleta ? suma / 1.19 : suma, iva = neto * .19, total = neto + iva;
-  el.innerHTML = suma ? `<div class="row" style="justify-content:space-between"><span class="muted">Neto</span><b>${peso(Math.round(neto))}</b></div><div class="row" style="justify-content:space-between"><span class="muted">IVA 19 %</span><b>${peso(Math.round(iva))}</b></div><div class="row" style="justify-content:space-between;font-size:17px"><span>Total con IVA</span><b>${peso(Math.round(total))}</b></div>${boleta ? '<small class="muted">En boleta el precio ya incluye IVA: el costo que queda en bodega es el neto.</small>' : '<small class="muted">Los costos unitarios son netos (sin IVA), como en la factura.</small>'}` : '<small class="muted">Escribe el costo unitario de cada producto para ver el total con IVA.</small>';
+    if (rech) return; suma += q * c; if ($('.i_carne', it) && $('.i_carne', it).checked) carne += q * c; });
+  const neto = boleta ? suma / 1.19 : suma, iva = neto * .19, anticipo = boleta ? 0 : carne * .05, total = neto + iva + anticipo;
+  el.innerHTML = suma ? `<div class="row" style="justify-content:space-between"><span class="muted">Neto</span><b>${peso(Math.round(neto))}</b></div><div class="row" style="justify-content:space-between"><span class="muted">IVA 19 %</span><b>${peso(Math.round(iva))}</b></div>${anticipo ? `<div class="row" style="justify-content:space-between"><span class="muted">🥩 Anticipo IVA carne 5 % <small>(sobre ${peso(Math.round(carne))})</small></span><b>${peso(Math.round(anticipo))}</b></div>` : ''}<div class="row" style="justify-content:space-between;font-size:17px"><span>${anticipo ? 'Total factura' : 'Total con IVA'}</span><b>${peso(Math.round(total))}</b></div>${anticipo ? '<small class="muted" style="display:block">El 5 % de la carne es un anticipo de IVA: se descuenta del IVA a pagar en el F29, por eso no se suma al costo del producto.</small>' : ''}${boleta ? '<small class="muted">En boleta el precio ya incluye IVA: el costo que queda en bodega es el neto.</small>' : '<small class="muted">Los costos unitarios son netos (sin IVA), como en la factura.</small>'}` : '<small class="muted">Escribe el costo unitario de cada producto para ver el total con IVA.</small>';
 }
 
 /* ═════════════════════ Salida: cargar desde Excel ═════════════════════ */
@@ -2247,12 +2259,12 @@ async function enviarPedido(prov, wa) {
 function proveedoresVista() {
   const hoy = DIAS[new Date().getDay()];
   const l = (S.proveedores || []).slice().sort((a, b) => (diasDe(b.pedido).has(hoy) - diasDe(a.pedido).has(hoy)) || a.nombre.localeCompare(b.nombre));
-  pantalla('Proveedores', `<input id="pv2_q" placeholder="🔎 Buscar proveedor o producto" style="margin-bottom:10px"><div id="pv2_l"></div>`);
+  pantalla('Proveedores', `<input id="pv2_q" placeholder="🔎 Buscar proveedor o producto" style="margin-bottom:10px">${esAdmin() && l.some(p => !p.rut) ? `<div class="aviso v">${l.filter(p => !p.rut).length} proveedor(es) sin RUT. Se completan solos al recibir una factura con foto o XML, o puedes escribirlo con ✏️ Editar.</div>` : ''}<div id="pv2_l"></div>`, esAdmin() ? { barra: `<button class="btn" onclick="provFicha('')">+ Nuevo proveedor</button>` } : {});
   const pintar = () => {
     const q = norm($('#pv2_q').value);
     $('#pv2_l').innerHTML = l.filter(p => !q || norm(p.nombre + ' ' + p.productos).includes(q)).map(p => {
       const hoyToca = diasDe(p.pedido).has(hoy), prods = (S.productos || []).filter(x => x.prov === p.nombre);
-      return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><h3 style="margin:0">${h(p.nombre)}</h3><small class="muted">${h(p.rut || 'RUT se completa con la primera factura')}</small></div>${hoyToca ? '<span class="badge b-ok">Hoy se pide</span>' : ''}</div>
+      return `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><h3 style="margin:0">${h(p.nombre)}</h3><small class="muted">${p.rut ? 'RUT ' + h(p.rut) : '<span style="color:#b26a00">Sin RUT: se completa con la próxima factura</span>'}</small></div><div style="display:flex;gap:6px;align-items:center">${hoyToca ? '<span class="badge b-ok">Hoy se pide</span>' : ''}${esAdmin() ? `<button class="btn chico gris" onclick="provFicha('${h(p.nombre)}')">✏️ Editar</button>` : ''}</div></div>
       ${p.productos ? `<p style="margin:8px 0 0;font-size:14px">${h(p.productos)}</p>` : ''}
       <div class="row" style="margin-top:8px;font-size:13.5px"><div><small class="muted">Día de pedido</small><br><b>${h(p.pedido || '—')}</b></div><div><small class="muted">Llega</small><br><b>${h(p.llegada || '—')}</b></div></div>
       ${contactosHTML(p.contacto)}
@@ -2261,6 +2273,20 @@ function proveedoresVista() {
     }).join('') || '<p class="muted">Sin proveedores.</p>';
   };
   $('#pv2_q').oninput = pintar; pintar();
+}
+
+function provFicha(nombre) {
+  const p = (S.proveedores || []).find(x => x.nombre === nombre) || { rut: '', nombre: '', contacto: '', productos: '', pedido: '', llegada: '' };
+  modal(`<h3>${nombre ? '✏️ Editar proveedor' : '+ Nuevo proveedor'}</h3>
+    <label class="l">Razón social / nombre</label><input id="pf_n" value="${h(p.nombre)}">
+    <label class="l">RUT</label><input id="pf_r" value="${h(p.rut)}" placeholder="76.123.456-7">
+    <label class="l">Contacto</label><input id="pf_c" value="${h(p.contacto)}" placeholder="Nombre: +56 9 …">
+    <label class="l">Productos que vende</label><input id="pf_p" value="${h(p.productos)}">
+    <div class="row"><div><label class="l">Día de pedido</label><input id="pf_d" value="${h(p.pedido)}" placeholder="Lunes y jueves"></div><div><label class="l">Día de llegada</label><input id="pf_ll" value="${h(p.llegada)}" placeholder="Martes y viernes"></div></div>
+    <div class="row" style="margin-top:14px">${nombre ? '<button class="btn rojo" id="pf_del">Quitar</button>' : ''}<button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="pf_ok">Guardar</button></div>`);
+  const enviar = async d => { try { const r = await api('proveedorFicha', { original: nombre, ...d }, { txt: 'Guardando…' }); S.proveedores = r.proveedores; ls.set('sesion', S); prepararListas(); cerrarModal(); toast(d.borrar ? '🗑️ Proveedor quitado' : '✅ Proveedor guardado'); proveedoresVista(); } catch (e) { toast(e.message); } };
+  $('#pf_ok').onclick = () => enviar({ nombre: $('#pf_n').value.trim(), rut: $('#pf_r').value.trim(), contacto: $('#pf_c').value.trim(), productos: $('#pf_p').value.trim(), pedido: $('#pf_d').value.trim(), llegada: $('#pf_ll').value.trim() });
+  if ($('#pf_del')) $('#pf_del').onclick = () => confirm('¿Quitar ' + nombre + ' de la lista de proveedores?') && enviar({ nombre, borrar: true });
 }
 
 /* ═════════════════════ Perfil ═════════════════════ */
