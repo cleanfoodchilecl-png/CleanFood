@@ -651,7 +651,7 @@ function itemHTML(it, i) {
     </div>
     <div class="row">
       <div><label class="l" style="margin-top:4px">Lote <small>(opc.)</small></label><input class="i_lote" value="${h(it.lote || '')}"></div>
-      <div><label class="l" style="margin-top:4px">Costo unit. ${REC.cab.tipo === 'Boleta' ? 'con IVA' : 'neto'} <small>(opc.)</small></label><input class="i_costo" type="number" inputmode="decimal" value="${h(it.costo || '')}">${it.costo ? `<small class="muted">${REC.cab.tipo === 'Boleta' ? 'neto ' + peso(Math.round(it.costo / 1.19)) : 'con IVA ' + peso(Math.round(it.costo * 1.19))}</small>` : ''}</div>
+      <div><label class="l" style="margin-top:4px">Costo unit. ${REC.cab.tipo === 'Boleta' ? 'con IVA' : 'neto'} <small>(opc.)</small></label><input class="i_costo" type="number" inputmode="decimal" value="${h(it.costo || '')}"><small class="muted i_sub" style="display:block"></small></div>
     </div>
     <div class="row" style="margin-top:8px;align-items:center"><label style="flex:0 0 auto;display:flex;gap:6px;align-items:center"><input type="checkbox" class="i_rech" style="width:auto" ${it.rechazado ? 'checked' : ''} onchange="leerItems();setTimeout(pintarItems,0)"> Rechazar</label>${it.rechazado ? `<input class="i_motivo" placeholder="Motivo del rechazo" value="${h(it.motivo || '')}">` : ''}</div>
   </div>`;
@@ -1819,7 +1819,10 @@ function parsearFacturaTexto(txt) {
 function recTotales() {
   const el = $('#r_tot'); if (!el || !REC) return;
   const boleta = (($('#r_tipo') || {}).value || REC.cab.tipo) === 'Boleta';
-  let suma = 0; $$('#items .item').forEach(it => { if ($('.i_rech', it).checked) return; suma += (Number($('.i_cant', it).value) || 0) * (Number($('.i_costo', it).value) || 0); });
+  let suma = 0; $$('#items .item').forEach(it => {
+    const q = Number($('.i_cant', it).value) || 0, c = Number($('.i_costo', it).value) || 0, sub = $('.i_sub', it), rech = $('.i_rech', it).checked;
+    if (sub) sub.innerHTML = q && c ? `${rech ? '<s>' : ''}${n0(q)} × ${peso(c)} = <b>${peso(Math.round(q * c))}</b> ${boleta ? 'con IVA · neto ' + peso(Math.round(q * c / 1.19)) : 'neto · con IVA ' + peso(Math.round(q * c * 1.19))}${rech ? '</s>' : ''}` : (c ? (boleta ? 'neto ' + peso(Math.round(c / 1.19)) : 'con IVA ' + peso(Math.round(c * 1.19))) : '');
+    if (rech) return; suma += q * c; });
   const neto = boleta ? suma / 1.19 : suma, iva = neto * .19, total = neto + iva;
   el.innerHTML = suma ? `<div class="row" style="justify-content:space-between"><span class="muted">Neto</span><b>${peso(Math.round(neto))}</b></div><div class="row" style="justify-content:space-between"><span class="muted">IVA 19 %</span><b>${peso(Math.round(iva))}</b></div><div class="row" style="justify-content:space-between;font-size:17px"><span>Total con IVA</span><b>${peso(Math.round(total))}</b></div>${boleta ? '<small class="muted">En boleta el precio ya incluye IVA: el costo que queda en bodega es el neto.</small>' : '<small class="muted">Los costos unitarios son netos (sin IVA), como en la factura.</small>'}` : '<small class="muted">Escribe el costo unitario de cada producto para ver el total con IVA.</small>';
 }
@@ -1850,7 +1853,7 @@ async function recientesHTML() {
   const el = $('#recientes'); if (!el) return;
   try {
     const L = await api('recientes', {}, { mudo: true }); window._recientes = L; if (!$('#recientes')) return;
-    $('#recientes').innerHTML = L.length ? `<details class="card" open><summary><b>🆕 Agregados recientemente</b> <small class="muted">últimos 14 días · toca ✏️ para corregir</small></summary><div class="lista" style="margin-top:6px">${L.slice(0, 15).map(x => `<div class="it" style="cursor:default"><div class="c"><b>${h(x.n)}</b><small>${h(String(x.f).slice(0, 16))} · ${h(x.prov || '')} · ${h(x.resp)}${x.venc ? ' · vence ' + fFecha(x.venc) : ''}</small></div><div class="num"><b>${n0(x.q)} ${h(x.u)}</b><br><button class="btn chico sec" onclick="editarReciente('${x.id}')">✏️ Editar</button></div></div>`).join('')}</div></details>` : '';
+    $('#recientes').innerHTML = L.length ? `<details class="card" open><summary><b>🆕 Agregados recientemente</b> <small class="muted">últimos 14 días · toca ✏️ para corregir</small></summary><div class="lista" style="margin-top:6px">${L.slice(0, 15).map(x => `<div class="it" style="cursor:default"><div class="c"><b>${h(x.n)}</b><small>${h(String(x.f).slice(0, 16))} · ${h(x.prov || '')} · ${h(x.resp)}${x.venc ? ' · vence ' + fFecha(x.venc) : ''}</small></div><div class="num"><b>${n0(x.q)} ${h(x.u)}</b>${Number(x.costo) > 0 ? `<br><small class="muted">${peso(Number(x.costo))}/${h(x.u)} · <b>${peso(Math.round(x.q * Number(x.costo)))}</b></small>` : ''}<br><button class="btn chico sec" onclick="editarReciente('${x.id}')">✏️ Editar</button></div></div>`).join('')}</div></details>` : '';
   } catch (e) { $('#recientes').innerHTML = ''; }
 }
 function editarReciente(id) {
@@ -1858,8 +1861,11 @@ function editarReciente(id) {
   modal(`<h3>✏️ Corregir entrada</h3><p class="muted">${h(x.n)} · ${h(String(x.f).slice(0, 16))} · ${h(x.doc || '')}</p>
     <div class="row"><div><label class="l">Cantidad (${h(x.u)})</label><input id="er_q" type="number" inputmode="decimal" step="any" value="${x.q}"></div><div><label class="l">Vencimiento</label><input id="er_v" type="date" value="${h(String(x.venc).slice(0, 10))}"></div></div>
     <div class="row"><div><label class="l">Lote</label><input id="er_l" value="${h(x.lote)}"></div><div><label class="l">Costo unit. neto</label><input id="er_c" type="number" inputmode="decimal" value="${h(x.costo)}"></div></div>
+    <div id="er_t" style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#eef6ee;font-size:15px"></div>
     <div class="row" style="margin-top:14px">${esAdmin() ? `<button class="btn rojo" id="er_del">Anular</button>` : ''}<button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="er_ok">Guardar</button></div>`);
-  const enviar = async d => { try { const r = await api('editarMovimiento', { id, ...d }, { txt: 'Guardando…' }); S.stock = r.stock; window._recientes = r.recientes; cerrarModal(); toast('✅ Entrada corregida y stock recalculado'); pintarStock(); recientesHTML(); } catch (e) { toast(e.message); } };
+  const enviar = async d => { try { const r = await api('editarMovimiento', { id, ...d }, { txt: 'Guardando…' }); S.stock = r.stock; if (r.productos) { S.productos = r.productos; ls.set('sesion', S); } window._recientes = r.recientes; cerrarModal(); toast('✅ Entrada corregida y stock recalculado'); pintarStock(); recientesHTML(); } catch (e) { toast(e.message); } };
+  const tot = () => { const q = Number($('#er_q').value) || 0, c = Number($('#er_c').value) || 0; $('#er_t').innerHTML = q && c ? `${n0(q)} ${h(x.u)} × ${peso(c)} = <b>${peso(Math.round(q * c))}</b> neto<br><small class="muted">Con IVA: ${peso(Math.round(q * c * 1.19))}</small>` : '<small class="muted">Escribe cantidad y costo para ver el total</small>'; };
+  $('#er_q').oninput = tot; $('#er_c').oninput = tot; tot();
   $('#er_ok').onclick = () => enviar({ cant: $('#er_q').value, venc: $('#er_v').value, lote: $('#er_l').value, costo: $('#er_c').value });
   if ($('#er_del')) $('#er_del').onclick = () => confirm('¿Anular esta entrada? La cantidad queda en 0.') && enviar({ borrar: true });
 }
@@ -2319,7 +2325,37 @@ async function cargarMovs() { try { MOVS = await api('movimientos', { desde: $('
 function pintarMovs() {
   const b = $('#mv_b').value, t = $('#mv_t').value, q = norm($('#mv_q').value);
   const l = MOVS.filter(m => (!b || m['Bodega'] === b) && (!t || m['Tipo'] === t) && (!q || norm(m['Producto'] + ' ' + m['Código']).includes(q))).reverse();
-  $('#mv_l').innerHTML = l.length ? `<table class="tabla"><tr><th>Fecha</th><th>Producto</th><th class="num">Cant.</th><th>Detalle</th></tr>${l.map(m => `<tr><td>${fFecha(m['Fecha'])}</td><td><b>${h(m['Producto'])}</b><br><small class="muted">${h(m['Bodega'])}</small></td><td class="num" style="color:${m['Tipo'] === 'SALIDA' || Number(m['Cantidad']) < 0 ? 'var(--r)' : 'var(--ok)'}"><b>${m['Tipo'] === 'SALIDA' ? '−' : Number(m['Cantidad']) > 0 ? '+' : ''}${n0(m['Cantidad'])}</b> ${h(m['Unidad'])}</td><td><small>${h(m['Motivo'])}${m['Proveedor / Destino'] ? ' · ' + h(m['Proveedor / Destino']) : ''}<br>${h(m['Documento'])} · ${h(m['Responsable'])}</small></td></tr>`).join('')}</table>` : '<p class="muted">Sin movimientos.</p>';
+  const ic = { ENTRADA: ['📥', 'Entrada', 'var(--ok)'], SALIDA: ['📤', 'Salida', 'var(--r)'], AJUSTE: ['🧮', 'Ajuste', '#b26a00'] };
+  $('#mv_l').innerHTML = l.length ? `<p class="muted" style="font-size:13px;margin:0 0 6px">Toca un movimiento para corregirlo.</p><div class="lista">${l.slice(0, 300).map(m => {
+    const k = ic[m['Tipo']] || ['•', m['Tipo'], ''], cant = Number(m['Cantidad']), c = Number(m['Costo unitario']) || 0, anul = /anulada/.test(m['Motivo'] || '');
+    return `<div class="it" style="cursor:pointer;${anul ? 'opacity:.5' : ''}" onclick="editarMov('${h(m['ID'])}')"><span style="font-size:20px">${k[0]}</span>
+      <div class="c"><b>${h(m['Producto'])}</b><small>${k[1]} · ${fFecha(m['Fecha'])}${m['Proveedor / Destino'] ? ' · ' + h(m['Proveedor / Destino']) : ''}${S.config.bodegas.length > 1 ? ' · ' + h(m['Bodega']) : ''}<br>${h(String(m['Motivo'] || '').split(' · ')[0])}${m['Documento'] ? ' · ' + h(m['Documento']) : ''} · ${h(m['Responsable'])}${anul ? ' · <b>ANULADA</b>' : ''}</small></div>
+      <div class="num"><b style="color:${k[2]}">${m['Tipo'] === 'SALIDA' ? '−' : cant > 0 ? '+' : ''}${n0(cant)} ${h(m['Unidad'])}</b>${c && m['Tipo'] === 'ENTRADA' ? `<br><small class="muted">${peso(c)} c/u · <b>${peso(Math.round(Math.abs(cant) * c))}</b></small>` : ''}<br><small style="color:var(--v)">✏️ Editar</small></div></div>`; }).join('')}</div>${l.length > 300 ? '<p class="muted centro">Mostrando los 300 más recientes: filtra por producto para ver más.</p>' : ''}` : '<p class="muted centro">Sin movimientos.</p>';
+}
+function editarMov(id) {
+  const m = MOVS.find(x => String(x['ID']) === String(id)); if (!m) return;
+  const tipo = m['Tipo'], u = m['Unidad'], ent = tipo === 'ENTRADA', sal = tipo === 'SALIDA';
+  if (!ent && !esAdmin()) return toast('Solo un administrador puede corregir salidas y ajustes');
+  const motivo0 = String(m['Motivo'] || '').split(' · ')[0], venc = isoSeguro(String(m['Vencimiento'] || '').slice(0, 10), '');
+  const mot = [...new Set([motivo0, ...(S.config.motivos || [])].filter(Boolean))], dest = [...new Set([m['Proveedor / Destino'], ...(S.config.servicios || [])].filter(Boolean))];
+  modal(`<h3>${ent ? '📥 Corregir entrada' : sal ? '📤 Corregir salida' : '🧮 Corregir ajuste'}</h3>
+    <p class="muted" style="margin-top:0">${h(m['Producto'])} · ${fFecha(m['Fecha'])}${m['Documento'] ? ' · ' + h(m['Documento']) : ''} · ${h(m['Responsable'])}</p>
+    <label class="l">Cantidad (${h(u)})${tipo === 'AJUSTE' ? ' <small>(negativo = faltaba)</small>' : ''}</label><input id="em_q" type="number" inputmode="decimal" step="any" value="${h(m['Cantidad'])}">
+    ${ent ? `<label class="l">Costo unit. neto</label><input id="em_c" type="number" inputmode="decimal" value="${h(m['Costo unitario'] || '')}">
+      <div id="em_t" style="margin-top:8px;padding:10px 12px;border-radius:12px;background:#eef6ee;font-size:15px"></div>
+      <div class="row"><div><label class="l">Vencimiento</label><input id="em_v" type="date" value="${h(venc)}"></div><div><label class="l">Lote</label><input id="em_l" value="${h(m['Lote'] || '')}"></div></div>
+      <label class="l">Proveedor</label><input id="em_d" list="dl-prov" value="${h(m['Proveedor / Destino'] || '')}">`
+    : sal ? `<label class="l">Destino / servicio</label>${selectHTML('em_d', dest, m['Proveedor / Destino'])}<label class="l">Motivo</label>${selectHTML('em_m', mot, motivo0)}` : ''}
+    <div class="row" style="margin-top:14px">${esAdmin() ? `<button class="btn rojo" id="em_del">Anular</button>` : ''}<button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="em_ok">Guardar</button></div>`);
+  const tot = () => { if (!$('#em_t')) return; const q = Number($('#em_q').value) || 0, c = Number($('#em_c').value) || 0; $('#em_t').innerHTML = q && c ? `${n0(q)} ${h(u)} × ${peso(c)} = <b>${peso(Math.round(q * c))}</b> neto<br><small class="muted">Con IVA: ${peso(Math.round(q * c * 1.19))}</small>` : '<small class="muted">Escribe cantidad y costo para ver el total</small>'; };
+  $('#em_q').oninput = tot; if ($('#em_c')) $('#em_c').oninput = tot; tot();
+  const enviar = async d => {
+    try { const r = await api('editarMovimiento', { id, ...d }, { txt: 'Guardando…' }); S.stock = r.stock; if (r.productos) S.productos = r.productos; ls.set('sesion', S); cerrarModal(); toast(d.borrar ? '🗑️ Movimiento anulado y stock recalculado' : '✅ Movimiento corregido y stock recalculado'); cargarMovs(); }
+    catch (e) { toast(e.message); }
+  };
+  $('#em_ok').onclick = () => enviar(ent ? { cant: $('#em_q').value, costo: $('#em_c').value, venc: $('#em_v').value, lote: $('#em_l').value, destino: $('#em_d').value.trim() }
+    : sal ? { cant: $('#em_q').value, destino: $('#em_d').value, motivo: $('#em_m').value } : { cant: $('#em_q').value });
+  if ($('#em_del')) $('#em_del').onclick = () => confirm('¿Anular este movimiento? La cantidad queda en 0 y el stock se recalcula.') && enviar({ borrar: true });
 }
 
 async function recepcionesVista() {
