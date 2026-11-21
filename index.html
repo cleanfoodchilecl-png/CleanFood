@@ -1454,6 +1454,23 @@ async function prPlanilla() {
 let CP = { w: 1, todo: false };
 const lunesISO = (iso, mas = 0) => { const d = lunesDe(iso); d.setDate(d.getDate() + 7 * mas); return ISO(d); };
 function cpSemanas() { return [0, 1, 2, 3].map(i => lunesISO(hoyISO(), i)); }
+/* ═════════════════════ Envases por ración (potes, bolsas…) ═════════════════════ */
+const envReglas = () => (S.config.envasesRacion || []).filter(r => r && r.m && (r.c || r.n) && Number(r.q) > 0);
+const envProd = r => { const P = S.productos || []; return P.find(p => p.c === r.c) || P.find(p => r.n && norm(p.n) === norm(r.n)); };
+const envDe = (min, sv) => envReglas().filter(r => norm(r.m) === norm(min) && (r.sv === '*' || norm(r.sv) === norm(sv)));
+function envReq(lunes, desde, out) { // suma a out los envases de la semana según las raciones (reales si ya se registraron)
+  const k = semanaMinuta(lunes);
+  MINUTAS_PLAN.forEach(m => {
+    if (!envReglas().some(r => norm(r.m) === norm(m))) return;
+    (S.abast.raciones || []).filter(r => minDe(r[5]) === m && r[0] === k && r[1] >= desde).forEach(r => {
+      const d = r[1], sv = r[2], dest = r[3], fe = fechaDe(lunes, d), rl = realDe(fe, m, dest, sv), n = rl != null ? rl : (Number(r[4]) || 0) * ajusteFactor(fe, m, dest); if (!n) return;
+      envDe(m, sv).forEach(x => { const p = envProd(x); if (!p) return; const q = n * Number(x.q), key = 'ENV|' + p.c;
+        const o = (out[key] = out[key] || { i: p.n, ub: p.u, div: 1, uc: p.u, prod: p.c, prov: p.prov || '', rubro: 'ENVASES Y DESECHABLES', env: true, base: 0, por: {}, dias: [0, 0, 0, 0, 0, 0, 0, 0] });
+        o.base += q; o.por[m] = (o.por[m] || 0) + q; o.dias[d] += q; });
+    });
+  });
+  return out;
+}
 function cpReq(lunes, desde) {
   const k = semanaMinuta(lunes), out = {};
   MINUTAS_PLAN.forEach(m => {
@@ -1465,6 +1482,7 @@ function cpReq(lunes, desde) {
       o.base += q; o.por[m] = (o.por[m] || 0) + q; o.dias[dd] += q;
     }));
   });
+  envReq(lunes, desde, out);
   (S.abast.excedentes || []).filter(e => e[0] === lunes).forEach(e => { const o = out[norm(e[2])]; if (o) { const antes = o.base; o.base = Math.max(0, o.base - Number(e[3]) * o.div); const k2 = antes ? o.base / antes : 1; o.dias = o.dias.map(v => v * k2); } });
   return out;
 }
@@ -1624,7 +1642,9 @@ async function alertaCompras() {
   try {
   const X = cpCalc(), l = cpPedirSemana(X, 1), provs = [...new Set(l.map(f => f.prov).filter(Boolean))], hoy = typeof pedirHoy === 'function' ? pedirHoy().filter(p => provs.some(x => norm(x) === norm(p))) : [];
   const ahora = cpPedirSemana(X, 0);
-  $('#alerta_compras').innerHTML = (l.length || ahora.length) ? `<div class="aviso r" style="cursor:pointer" onclick="CP.w=${ahora.length ? 0 : 1};ir(comprasVista)">🛒 <b>${ahora.length ? 'Falta para esta semana: ' + ahora.length + ' ingredientes. ' : ''}${l.length ? 'Semana del ' + fCorta(X.W[1]) + ': pedir ' + l.length + ' ingredientes a ' + provs.length + ' proveedores.' : ''}</b>${hoy.length ? '<br>Hoy toca pedir a ' + hoy.map(h).join(', ') + '.' : ''} <u>Ver y hacer pedidos ›</u></div>` : '';
+  const envF = X.filas.filter(f => String(f.k).startsWith('ENV|') && (f.sem[0].pedir > 0.5 || (f.sem[1] && f.sem[1].pedir > 0.5)));
+  const envH = envF.length ? `<div class="aviso r" style="cursor:pointer;margin-top:8px" onclick="CP.w=${envF.some(f => f.sem[0].pedir > 0.5) ? 0 : 1};ir(comprasVista)">📦 <b>Envases que van a faltar</b>${envF.map(f => { const a = f.sem[0], b = f.sem[1] || { need: 0, pedir: 0 }; return `<br>• <b>${h(f.i)}</b>: hay ${n0(f.st)}, ${a.pedir > 0.5 ? `esta semana faltan <b>${n0(Math.ceil(a.pedir))}</b>` : a.need > 0 ? `alcanza esta semana` : `esta semana no se usan`}${b.need > 0 ? ` · semana del ${fCorta(X.W[1])} usa ${n0(Math.ceil(b.need))}${b.pedir > 0.5 ? `, pedir <b>${n0(Math.ceil(b.pedir))}</b>` : ''}` : ''}${f.prov ? ` <small class="muted">(${h(f.prov)})</small>` : ''}`; }).join('')} <u>Ver compras ›</u></div>` : '';
+  $('#alerta_compras').innerHTML = envH + ((l.length || ahora.length) ? `<div class="aviso r" style="cursor:pointer" onclick="CP.w=${ahora.length ? 0 : 1};ir(comprasVista)">🛒 <b>${ahora.length ? 'Falta para esta semana: ' + ahora.length + ' ingredientes. ' : ''}${l.length ? 'Semana del ' + fCorta(X.W[1]) + ': pedir ' + l.length + ' ingredientes a ' + provs.length + ' proveedores.' : ''}</b>${hoy.length ? '<br>Hoy toca pedir a ' + hoy.map(h).join(', ') + '.' : ''} <u>Ver y hacer pedidos ›</u></div>` : '');
   } catch (e) { console.error(e); }
 }
 /* ═════════════════════ Lector de Excel (xlsx/xlsm/csv) en el navegador ═════════════════════ */
@@ -2016,6 +2036,9 @@ function desCalc() {
     const sug = okU ? (c.entera ? Math.ceil(qty - 1e-9) : Math.round(qty * 100) / 100) : '';
     return { i, n: c.i, uc: c.uc, qty, p, okU, st, cant: i in DES.cant ? DES.cant[i] : sug, rubro: c.rubro || 'OTROS' };
   }).filter(x => x.qty > 0).sort((a, b) => (RUB_AB.indexOf(a.rubro) + 1 || 9) - (RUB_AB.indexOf(b.rubro) + 1 || 9) || a.n.localeCompare(b.n));
+  const env = {}; filas.forEach(x => envDe(DES.min, x.sv).forEach(r => { const p = envProd(r); if (p) env[p.c] = (env[p.c] || 0) + Number(r.q) * x.val; }));
+  Object.keys(env).forEach(c => { const p = (S.productos || []).find(z => z.c === c), i = 'ENV|' + c, st = (S.stock || []).filter(s => s.c === c && s.b === DES.bodega).reduce((a, s) => a + Number(s.stock || 0), 0);
+    items.unshift({ i, n: p.n, uc: p.u, qty: env[c], p, okU: true, st, cant: i in DES.cant ? DES.cant[i] : Math.ceil(env[c] - 1e-9), rubro: 'ENVASES Y DESECHABLES', env: true }); });
   return { C, k, lunes, dias, filas, items };
 }
 function pintarDespacho() {
@@ -2053,14 +2076,14 @@ function pintarDespacho() {
     ${X.filas.length ? tabla : '<p class="muted">No hay servicios planificados para esta fecha.</p>'}
     <label class="l">Motivo del cambio <small>(opcional)</small></label><input id="des_m" placeholder="Ej: suspensión de clases, se fueron 5 alumnos" value="${h(DES.motivo || '')}" oninput="DES.motivo=this.value">
   </div>
-  <div class="card"><h3>Sale de bodega</h3><div id="des_items"></div></div>`,
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">Sale de bodega</h3>${esAdmin() ? '<button class="btn chico gris" onclick="envasesAdmin()">📦 Envases por ración</button>' : ''}</div><div id="des_items" style="margin-top:8px"></div></div>`,
     { barra: `<button class="btn gris" onclick="desGuardar(false)">Solo guardar raciones</button><button class="btn" onclick="desGuardar(true)">Guardar y descontar</button>` });
   desItems();
 }
 function desItems() {
   const el = $('#des_items'); if (!el) return; const X = desCalc(), con = X.items.filter(x => x.okU), sin = X.items.filter(x => !x.okU);
   el.innerHTML = (con.length ? `<div class="scroll"><table class="tabla ab"><tr><th>Producto</th><th class="num">Necesita</th><th class="num">Stock</th><th class="num">Despachar</th></tr>
-    ${con.map(x => `<tr><td><b>${h(x.p.n)}</b><br><small class="muted">${h(x.p.c)}</small></td><td class="num">${n0(Math.round(x.qty * 100) / 100)} ${h(x.uc)}</td><td class="num" style="color:${x.st + 1e-9 < Number(x.cant || 0) ? 'var(--r)' : ''}">${n0(x.st)}</td>
+    ${con.map(x => `<tr><td><b>${x.env ? '📦 ' : ''}${h(x.p.n)}</b><br><small class="muted">${h(x.p.c)}${x.env ? ' · envase por ración' : ''}</small></td><td class="num">${n0(Math.round(x.qty * 100) / 100)} ${h(x.uc)}</td><td class="num" style="color:${x.st + 1e-9 < Number(x.cant || 0) ? 'var(--r)' : ''}">${n0(x.st)}</td>
       <td class="num"><input type="number" inputmode="decimal" step="0.01" min="0" style="max-width:90px;padding:6px 8px" value="${x.cant}" oninput="DES.cant['${h(x.i)}']=this.value"></td></tr>`).join('')}</table></div>` : '<p class="muted">Nada que despachar con estas raciones.</p>')
     + (sin.length ? `<details style="margin-top:10px"><summary class="muted" style="font-size:13px">${sin.length} ingrediente(s) sin producto de bodega (no se descuentan)</summary><p style="font-size:13px">${sin.map(x => h(x.n) + ' ' + n0(Math.round(x.qty * 100) / 100) + ' ' + h(x.uc)).join(' · ')}</p><p class="muted" style="font-size:12px">Se asignan en el catálogo de abastecimiento (columna producto).</p></details>` : '');
 }
@@ -2077,6 +2100,36 @@ async function desGuardar(descontar) {
     toast(descontar ? '✅ Despacho ' + (r.vale || '') + ' descontado de bodega' + (r.avisos && r.avisos.length ? ' · ⚠️ ' + r.avisos.length + ' con menos stock del registrado' : '') : '✅ Raciones guardadas: compras y requerimientos actualizados');
     pintarDespacho();
   } catch (e) { toast(e.message); }
+}
+
+/* ═════════════════════ Editor de envases por ración (admin) ═════════════════════ */
+let ENVR = null;
+function envasesAdmin() {
+  if (!ENVR) ENVR = JSON.parse(JSON.stringify(S.config.envasesRacion || []));
+  const svs = m => [...new Set((S.abast.raciones || []).filter(r => minDe(r[5]) === m).map(r => r[2]))];
+  const P = (S.productos || []).filter(p => p.activo !== false), envP = P.filter(p => /ENVAS|DESECH|POTE/i.test(norm(p.cat + ' ' + p.n)) || /^ENV/.test(p.c));
+  const opP = L => L.map(p => `<option value="${h(p.n + ' · ' + p.c)}">`).join('');
+  modal(`<h3>📦 Envases por ración</h3>
+    <p class="muted" style="font-size:13px;margin-top:0">Lo que lleva cada ración servida. Al despachar se multiplica por las raciones reales y se descuenta de bodega; también entra a las compras y avisa si van a faltar. Take a Food no va aquí: sus envases vienen en las recetas de la caja.</p>
+    ${ENVR.length ? `<table class="tabla">${ENVR.map((r, k) => { const p = envProd(r); return `<tr><td><b>${h(cortoMin(r.m))}</b> · ${r.sv === '*' ? 'todos los servicios' : h(r.sv)}<br><small>${p ? h(p.n) + ' <span class="muted">' + h(p.c) + '</span>' : '<span style="color:var(--r)">⚠️ producto no encontrado: ' + h(r.n || r.c) + '</span>'}</small></td><td class="num"><b>${n0(r.q)}</b> por ración</td><td><button class="btn chico gris" onclick="ENVR.splice(${k},1);envasesAdmin()">✕</button></td></tr>`; }).join('')}</table>` : '<p class="muted">Todavía no hay envases configurados.</p>'}
+    <h3 style="margin-top:14px">Agregar</h3>
+    <div class="row"><div><label class="l">Minuta</label><select id="en_m" onchange="envSvs(this.value)">${MINUTAS_PLAN.map(m => `<option>${h(m)}</option>`).join('')}</select></div>
+    <div><label class="l">Servicio</label><select id="en_sv"><option value="*">Todos los servicios</option>${svs(MINUTAS_PLAN[0]).map(s => `<option>${h(s)}</option>`).join('')}</select></div></div>
+    <label class="l">Envase (producto de bodega)</label><input id="en_p" list="dl-env" placeholder="Ej: POTES PARTICULARES"><datalist id="dl-env">${opP(envP.length ? envP : P)}</datalist>
+    <label class="l">Cantidad por ración</label><input id="en_q" type="number" inputmode="decimal" step="0.01" min="0" value="1">
+    <button class="btn sec full" style="margin-top:8px" onclick="envAgregar()">+ Agregar a la lista</button>
+    <div class="row" style="margin-top:14px"><button class="btn gris" onclick="ENVR=null;cerrarModal()">Cancelar</button><button class="btn" onclick="envGuardar()">Guardar</button></div>`);
+}
+function envAgregar() {
+  const p = trProd($('#en_p').value.trim()), q = Number($('#en_q').value);
+  if (!p) return toast('Elige el envase de la lista de productos'); if (!(q > 0)) return toast('Escribe cuántos lleva cada ración');
+  const r = { m: $('#en_m').value, sv: $('#en_sv').value, c: p.c, n: p.n, q }, k = ENVR.findIndex(x => norm(x.m) === norm(r.m) && x.sv === r.sv && x.c === r.c);
+  if (k >= 0) ENVR[k] = r; else ENVR.push(r); envasesAdmin();
+}
+function envSvs(m) { $('#en_sv').innerHTML = '<option value="*">Todos los servicios</option>' + [...new Set((S.abast.raciones || []).filter(r => minDe(r[5]) === m).map(r => r[2]))].map(x => `<option>${h(x)}</option>`).join(''); }
+async function envGuardar() {
+  try { await api('config', { config: { envases_racion: JSON.stringify(ENVR) } }, { txt: 'Guardando…' }); S.config.envasesRacion = ENVR; ENVR = null; ls.set('sesion', S); cerrarModal(); toast('✅ Envases por ración guardados');
+    const t = pila[pila.length - 1]; if (t && t[0] === despachoVista) pintarDespacho(); } catch (e) { toast(e.message); }
 }
 
 /* ═════════════════════ Producción: crudo → listo (ej. carne Take a Food) ═════════════════════ */
