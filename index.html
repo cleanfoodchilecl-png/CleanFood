@@ -300,9 +300,9 @@ function menuGrupos(u, f, todo) { // todo = catálogo completo para armar perfil
   const A = u.rol === 'admin', B = A || u.rol === 'bodega', cocina = ['admin', 'cocina', 'atencion'].includes(u.rol);
   return [
     { g: '', it: [['🏠', 'Inicio', "pila=[];inicio()", 'inicio']] },
+    B ? { g: 'Bodega y stock', it: [['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], ['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['📉', 'Mínimos de stock', 'ir(minimosVista)', 'minimosVista'], ['🛒', 'Compras de la semana', 'ir(comprasVista)', 'comprasVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista'], ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], u.rol === 'bodega' ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null] } : null,
     { g: 'Encargos y agenda', it: [['📅', 'Calendario de encargos', "CAL.sel=hoyISO();ir(calendarioVista)", 'calendarioVista'], (todo || (S.rutina || []).length) && ['admin', 'bodega', 'chofer'].includes(u.rol) ? ['🕒', 'Rutina del día', 'ir(rutinaVista)', 'rutinaVista'] : null] },
-    cocina && (todo || (S.minutas || []).length) ? { g: 'Cocina y servicio', it: [['🧾', 'Caja Take a Food', 'ir(cajaTAFVista)', 'cajaTAFVista'], ['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista'], !B ? ['🔥', 'Producción: crudo → listo', 'ir(transformarVista)', 'transformarVista'] : null, !B && u.rol === 'cocina' ? ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['👩‍🍳', 'Recetario', 'ir(recetarioVista)', 'recetarioVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧮', 'Producción del día', 'ir(produccionVista)', 'produccionVista'] : null] } : null,
-    B ? { g: 'Bodega y stock', it: [['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'], ['🔥', 'Producción: crudo → listo', 'ir(transformarVista)', 'transformarVista'], ['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['📉', 'Mínimos de stock', 'ir(minimosVista)', 'minimosVista'], ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], ['🛒', 'Compras de la semana', 'ir(comprasVista)', 'comprasVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista'], u.rol === 'bodega' ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null] } : null,
+    cocina && (todo || (S.minutas || []).length) ? { g: 'Cocina y servicio', it: [['🧾', 'Caja Take a Food', 'ir(cajaTAFVista)', 'cajaTAFVista'], ['🔥', 'Take a Food: crudo → listo', 'ir(transformarVista)', 'transformarVista'], ['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista'], !B && u.rol === 'cocina' ? ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['👩‍🍳', 'Recetario', 'ir(recetarioVista)', 'recetarioVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧮', 'Producción del día', 'ir(produccionVista)', 'produccionVista'] : null] } : null,
     { g: 'Inocuidad y prevención', it: [['⏱️', 'Vida útil y rotulado', 'ir(vidaUtilVista)', 'vidaUtilVista']].concat(f.map(x => [x.icono, x.titulo, `ir(formulario,'${x.id}')`, 'form:' + x.id])) },
     A ? { g: 'Administración', it: [['📊', 'Resumen del día', 'ir(resumenVista)', 'resumenVista'], ['🍽️', 'Raciones del mes y PAE', 'ir(racionesVista)', 'racionesVista'], ['🗂️', 'Registros', 'ir(registrosVista)', 'registrosVista'], ['📒', 'Movimientos', 'ir(movimientosVista)', 'movimientosVista'], ['🧾', 'Recepciones', 'ir(recepcionesVista)', 'recepcionesVista'], ['📑', 'Permisos y cursos', 'ir(documentosVista)', 'documentosVista'], ['👥', 'Usuarios y trabajadores', 'ir(trabajadoresVista)', 'trabajadoresVista'], ['🛡️', 'Perfiles y permisos', 'ir(perfilesVista)', 'perfilesVista'], ['⚙️', 'Configuración', 'ir(configVista)', 'configVista'], ['📗', 'Abrir planilla', 'abrirPlanilla()', '']] } : null,
     A ? { g: 'Ventas y clientes', it: [['👥', 'Clientes e ingresos', 'ir(clientesVista)', 'clientesVista'], ['🧾', 'Cotizaciones', 'ir(cotizacionesVista)', 'cotizacionesVista'], ['📈', 'Precios de proveedores', 'ir(preciosVista)', 'preciosVista'], ['📊', 'Ventas Take a Food', 'ir(ventasCajaVista)', 'ventasCajaVista'], ['💹', 'Resultado del mes', 'ir(resultadoVista)', 'resultadoVista']] } : null,
@@ -326,14 +326,14 @@ function menuLateral() {
     ${G.map(x => {
       const its = x.it.filter(Boolean), links = its.map(i => `<a class="${i[3] && i[3] === act ? 'on' : ''}" onclick="document.body.classList.remove('navab');${i[2]}"><span class="ic">${i[0]}</span>${h(i[1])}</a>`).join('');
       if (!x.g) return links;
-      const abierto = its.some(i => i[3] === act) || (ls.get('nav_abiertos', ['Encargos y agenda']) || []).includes(x.g);
+      const abierto = its.some(i => i[3] === act) || (ls.get('nav_ab2', ['Bodega y stock', 'Encargos y agenda']) || []).includes(x.g);
       return `<div class="gr ${abierto ? 'abierto' : ''}" data-g="${h(x.g)}"><button class="grp" onclick="toggleGrupo(this.parentNode)"><span>${h(x.g)}</span><span class="n">${its.length}</span><span class="fl">▼</span></button><div class="its"><div>${links}</div></div></div>`;
     }).join('')}
     <div class="pie2"><img src="${TAKEAFOOD}" alt="" style="height:22px;opacity:.8"><br>${h(S.version || '')}</div>`;
 }
 function toggleGrupo(el) {
   el.classList.toggle('abierto');
-  const ab = $$('.nav .gr.abierto').map(x => x.dataset.g); ls.set('nav_abiertos', ab);
+  const ab = $$('.nav .gr.abierto').map(x => x.dataset.g); ls.set('nav_ab2', ab);
 }
 function pantalla(titulo, html, opts = {}) {
   const u = S.usuario;
@@ -2136,10 +2136,10 @@ async function envGuardar() {
 let TRF = {};
 function transformarVista() {
   const L = (S.productos || []).filter(p => p.activo !== false), op = p => `<option value="${h(p.n + ' · ' + p.c)}">`;
-  const lugares = [...new Set(['Local Take a Food', 'Planta Clean Food', ...(S.config.servicios || [])])];
-  pantalla('Producción: crudo → listo', `
-  <div class="card"><p class="muted" style="margin-top:0;font-size:13.5px">Cuando se cocina o prepara algo, lo crudo <b>baja</b> del stock y lo listo <b>sube</b>. Ej: 10 kg de carne cruda → 7 kg de carne cocida.</p>
-    ${bodegaSel('tr_b', TRF.b || bodegaActual())}
+  const bt = S.config.bodegaTAF || (S.config.bodegas || []).find(b => /take/i.test(b)) || bodegaActual();
+  pantalla('Take a Food: crudo → listo', `
+  <div class="card"><p class="muted" style="margin-top:0;font-size:13.5px">Solo para el local <b>Take a Food</b>: cuando se cocina, lo crudo <b>baja</b> del stock del local y lo listo <b>sube</b>. Ej: 10 kg de carne cruda → 7 kg de carne cocida.</p>
+    <p style="font-size:13.5px;margin:0">📍 Bodega: <b>${h(bt)}</b></p><input type="hidden" id="tr_b" value="${h(bt)}">
     <datalist id="dl-trf">${L.map(op).join('')}</datalist>
     <label class="l">Producto crudo que se usa</label><input id="tr_a" list="dl-trf" placeholder="Ej: carne de vacuno" value="${h(TRF.a || '')}" oninput="trInfo()">
     <label class="l">Cantidad usada</label><input id="tr_qa" type="number" inputmode="decimal" step="0.01" oninput="trInfo()">
@@ -2150,7 +2150,7 @@ function transformarVista() {
   </div>
   <div class="card"><h3>Vida útil del producto listo</h3>
     <div class="chips" id="tr_h">${(S.config.vidaUtilHoras || [12, 24, 48, 72]).map((x, i) => `<button type="button" class="chip ${x === 72 || (i === 3) ? 'on' : ''}" onclick="$$('#tr_h .chip').forEach(b=>b.classList.remove('on'));this.classList.add('on')" data-h="${x}">${x} h</button>`).join('')}<button type="button" class="chip" data-h="0" onclick="$$('#tr_h .chip').forEach(b=>b.classList.remove('on'));this.classList.add('on')">Sin rótulo</button></div>
-    <label class="l">Lugar</label>${selectHTML('tr_l', lugares, ls.get('vu_lugar', '') || 'Local Take a Food')}
+    <input type="hidden" id="tr_l" value="Local Take a Food">
     <label class="l">Observación <small>(opcional)</small></label><input id="tr_o">
   </div>`, { barra: `<button class="btn" onclick="trGuardar()">Registrar producción</button>` });
   trInfo();
