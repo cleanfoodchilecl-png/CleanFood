@@ -204,6 +204,7 @@ body.navab .navfondo{display:block;position:fixed;inset:0;background:rgba(20,38,
 .pie img{height:28px;opacity:.75;display:block;margin:0 auto 6px}
 .pie .dos{display:flex;gap:18px;justify-content:center;align-items:center;margin-bottom:6px}.pie .dos img{margin:0;height:30px;opacity:.85}
 .marcab{background:#fff;border:1px solid var(--b);border-radius:14px;padding:10px;margin-bottom:10px;text-align:center;box-shadow:var(--sh)}.marcab img{height:44px}
+.pos{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}.pos-r{position:sticky;top:76px;margin:0}.pos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}.pos-p{background:#fff;border:1px solid var(--b);border-radius:14px;padding:12px 10px;text-align:left;cursor:pointer;min-height:78px;display:flex;flex-direction:column;justify-content:space-between;font:inherit;color:inherit;box-shadow:0 1px 2px rgba(0,0,0,.04)}.pos-p:active{transform:scale(.97);background:var(--v2)}.pos-p b{font-size:13.5px;line-height:1.25}.pos-p span{color:var(--v);font-weight:700;margin-top:6px}@media(max-width:860px){.pos{grid-template-columns:1fr}.pos-r{position:static}}
 </style>
 </head>
 <body>
@@ -300,11 +301,11 @@ function menuGrupos(u, f, todo) { // todo = catálogo completo para armar perfil
   return [
     { g: '', it: [['🏠', 'Inicio', "pila=[];inicio()", 'inicio']] },
     { g: 'Encargos y agenda', it: [['📅', 'Calendario de encargos', "CAL.sel=hoyISO();ir(calendarioVista)", 'calendarioVista'], (todo || (S.rutina || []).length) && ['admin', 'bodega', 'chofer'].includes(u.rol) ? ['🕒', 'Rutina del día', 'ir(rutinaVista)', 'rutinaVista'] : null] },
-    cocina && (todo || (S.minutas || []).length) ? { g: 'Cocina y servicio', it: [['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista'], !B ? ['🔥', 'Producción: crudo → listo', 'ir(transformarVista)', 'transformarVista'] : null, !B && u.rol === 'cocina' ? ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['👩‍🍳', 'Recetario', 'ir(recetarioVista)', 'recetarioVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧮', 'Producción del día', 'ir(produccionVista)', 'produccionVista'] : null] } : null,
+    cocina && (todo || (S.minutas || []).length) ? { g: 'Cocina y servicio', it: [['🧾', 'Caja Take a Food', 'ir(cajaTAFVista)', 'cajaTAFVista'], ['📖', 'Minutas / menú de hoy', 'ir(menuVista)', 'menuVista'], ['🥡', 'Ventas y merma Take a Food', 'ir(ventasVista)', 'ventasVista'], !B ? ['🔥', 'Producción: crudo → listo', 'ir(transformarVista)', 'transformarVista'] : null, !B && u.rol === 'cocina' ? ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['👩‍🍳', 'Recetario', 'ir(recetarioVista)', 'recetarioVista'] : null, ['admin', 'cocina'].includes(u.rol) ? ['🧮', 'Producción del día', 'ir(produccionVista)', 'produccionVista'] : null] } : null,
     B ? { g: 'Bodega y stock', it: [['📥', 'Recepción de mercadería', 'ir(recepcion)', 'recepcion'], ['📤', 'Salida de bodega', "ir(salida,'')", 'salida'], ['🚚', 'Despacho a servicios', 'ir(despachoVista)', 'despachoVista'], ['🔥', 'Producción: crudo → listo', 'ir(transformarVista)', 'transformarVista'], ['📦', 'Stock en línea', 'ir(stockVista)', 'stockVista'], A ? ['🧮', 'Inventario físico', 'ir(inventario)', 'inventario'] : null, ['🏷️', 'Productos', 'ir(productosVista)', 'productosVista'], ['🛒', 'Compras de la semana', 'ir(comprasVista)', 'comprasVista'], ['🚚', 'Proveedores y pedidos', 'ir(proveedoresVista)', 'proveedoresVista'], u.rol === 'bodega' ? ['🧺', 'Raciones y abastecimiento', 'ir(abastVista)', 'abastVista'] : null] } : null,
     { g: 'Inocuidad y prevención', it: [['⏱️', 'Vida útil y rotulado', 'ir(vidaUtilVista)', 'vidaUtilVista']].concat(f.map(x => [x.icono, x.titulo, `ir(formulario,'${x.id}')`, 'form:' + x.id])) },
     A ? { g: 'Administración', it: [['📊', 'Resumen del día', 'ir(resumenVista)', 'resumenVista'], ['🍽️', 'Raciones del mes y PAE', 'ir(racionesVista)', 'racionesVista'], ['🗂️', 'Registros', 'ir(registrosVista)', 'registrosVista'], ['📒', 'Movimientos', 'ir(movimientosVista)', 'movimientosVista'], ['🧾', 'Recepciones', 'ir(recepcionesVista)', 'recepcionesVista'], ['📑', 'Permisos y cursos', 'ir(documentosVista)', 'documentosVista'], ['👥', 'Usuarios y trabajadores', 'ir(trabajadoresVista)', 'trabajadoresVista'], ['🛡️', 'Perfiles y permisos', 'ir(perfilesVista)', 'perfilesVista'], ['⚙️', 'Configuración', 'ir(configVista)', 'configVista'], ['📗', 'Abrir planilla', 'abrirPlanilla()', '']] } : null,
-    A ? { g: 'Ventas y clientes', it: [['👥', 'Clientes e ingresos', 'ir(clientesVista)', 'clientesVista'], ['🧾', 'Cotizaciones', 'ir(cotizacionesVista)', 'cotizacionesVista'], ['📈', 'Precios de proveedores', 'ir(preciosVista)', 'preciosVista']] } : null,
+    A ? { g: 'Ventas y clientes', it: [['👥', 'Clientes e ingresos', 'ir(clientesVista)', 'clientesVista'], ['🧾', 'Cotizaciones', 'ir(cotizacionesVista)', 'cotizacionesVista'], ['📈', 'Precios de proveedores', 'ir(preciosVista)', 'preciosVista'], ['📊', 'Ventas Take a Food', 'ir(ventasCajaVista)', 'ventasCajaVista']] } : null,
     { g: 'Mi cuenta', it: [['👤', 'Mi perfil', 'ir(perfil)', 'perfil'], ['💵', 'Caja chica', 'ir(cajaVista)', 'cajaVista']] }
   ].filter(Boolean);
 }
@@ -2204,7 +2205,7 @@ const ALIAS_PLANILLA = { 'PECHUGA DE POLLO DESHUESADA': 'PECHUGA DESHUESADA', 'Q
   'MASA LASANA': 'MASA DE LASANA', 'LONGANIZA/CHORIZOS': 'LONGANIZA', 'JUGO 200 ML': 'JUGO EN CAJA', 'CREMA DE LECHE 1 LT': 'CREMA DE LECHE', 'SPAGUETTI - TALLARINES': 'TALLARINES', 'CABELLO DE ANGEL': 'CABELLOS DE ANGEL',
   'SERVILLETAS': 'SERVILLETA', 'ACEITE (BIDON 5 LT)': 'ACEITE', 'QUESO PARMESANO RAYADO': 'QUESO PARMESANO', 'TE (BOLSAS)': 'TE', 'MASA TORTILLA (PAQUETE 12U)': 'TORTILLAS MEXICANAS', 'FRUTA EN CONSERVA 3KG': 'FRUTA CONSERVA', 'TRUTRO DE POLLO ENTERO UNIDADES': 'TRUTRO ENTERO POLLO' };
 function lev(a, b) { if (Math.abs(a.length - b.length) > 2) return 9; const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
-const tokSim = (a, b) => a === b || (Math.min(a.length, b.length) >= 4 && (a.startsWith(b) || b.startsWith(a))) || (a.length >= 5 && lev(a, b) <= (a.length >= 7 ? 2 : 1));
+const tokSim = (a, b) => a === b || (Math.min(a.length, b.length) >= 4 && (a.startsWith(b) || b.startsWith(a))) || (Math.min(a.length, b.length) >= 6 && lev(a, b) <= (Math.min(a.length, b.length) >= 8 ? 2 : 1));
 function prodParecido(nombre) { // todas las palabras del producto de la app aparecen (parecidas) en el nombre de la planilla, o al revés
   const w = norm(nombre).replace(/[^A-Z0-9 ]/g, ' ').split(' ').filter(z => z.length > 2 && !/^(DEL|LOS|LAS|CON|SIN|PARA)$/.test(z)); if (!w.length) return null;
   let mejor = null, pm = 0;
@@ -2349,6 +2350,176 @@ function stockExcelModal(log) {
       pila.pop(); ir(stockVista);
     } catch (e) { toast(e.message); }
   };
+}
+
+/* ═════════════════════ Caja Take a Food (venta en mostrador + arqueo) ═════════════════════ */
+let CJ = null, CART = { items: [], tipo: 'Mostrador', mp: 'Efectivo', desc: 0, paga: '', nota: '' }, CJF = { cat: '', q: '' };
+const TIPOS_VENTA = ['Mostrador', 'Para llevar', 'Delivery', 'Mesa'];
+async function cajaTAFVista() {
+  if (!CJ) pantalla('Caja Take a Food', '<div class="card"><p class="muted">Cargando caja…</p></div>');
+  try { CJ = await api('cajaTAF', {}, { mudo: true }); } catch (e) { return pantalla('Caja Take a Food', `<div class="card"><p>${h(e.message)}</p><p class="muted" style="font-size:13px">Si dice que la acción no existe, falta publicar la nueva versión del Apps Script.</p></div>`); }
+  pintarCaja();
+}
+const cartTotal = () => { const sub = CART.items.reduce((a, x) => a + x.q * x.p, 0), desc = Math.min(sub, Math.max(0, Math.round(Number(CART.desc) || 0))); return { sub, desc, t: sub - desc }; };
+function pintarCaja() {
+  const carta = (CJ.carta || []).filter(x => x.act);
+  if (!carta.length) return pantalla('Caja Take a Food', `<div class="card"><h3 style="margin-top:0">Falta cargar la carta</h3><p>Sube el archivo <b>productos.xlsx</b> que se exporta desde Fudo (Productos → Exportar). Trae los platos, precios y recetas.</p>${esAdmin() ? '<button class="btn" onclick="importarFudo()">📥 Cargar carta de Fudo</button>' : '<p class="muted">Pídele a un administrador que la cargue.</p>'}</div>`);
+  if (!CJ.caja) return pantalla('Caja Take a Food', `<div class="card" style="max-width:520px"><h3 style="margin-top:0">🔓 Abrir caja</h3><p class="muted" style="font-size:13.5px;margin-top:0">Cuenta el efectivo con que parte el turno (sencillo).</p>
+    <label class="l">Monto inicial en efectivo</label><input id="cj_ini" type="number" inputmode="numeric" value="${CJ.ultima ? '' : ''}" placeholder="$">
+    <button class="btn full" style="margin-top:12px" onclick="cajaAbrir()">Abrir caja</button>
+    ${CJ.ultima ? `<p class="muted" style="font-size:13px;margin:12px 0 0">Último cierre: ${fFecha(CJ.ultima.cierre)} · vendió ${peso(CJ.ultima.total)} · diferencia ${CJ.ultima.dif ? `<b style="color:var(--r)">${peso(CJ.ultima.dif)}</b>` : '<b style="color:var(--ok)">$0</b>'}</p>` : ''}</div>
+    ${esAdmin() ? '<button class="btn sec" onclick="importarFudo()">📥 Actualizar carta desde Fudo</button>' : ''}`);
+  const cats = [...new Set(carta.map(x => x.cat))], q = norm(CJF.q), L = carta.filter(x => (!CJF.cat || x.cat === CJF.cat) && (!q || norm(x.n + ' ' + x.c).includes(q)));
+  const V = (CJ.caja.ventas || []).filter(v => !v.anul), totT = V.reduce((a, v) => a + v.t, 0);
+  pantalla('Caja Take a Food', `
+  <div class="pos">
+    <div class="pos-l">
+      <input id="cj_q" placeholder="🔎 Buscar plato" value="${h(CJF.q)}" style="margin-bottom:8px">
+      <div class="chips" style="margin-bottom:10px"><button class="chip ${!CJF.cat ? 'on' : ''}" onclick="CJF.cat='';pintarCaja()">Todo</button>${cats.map(c => `<button class="chip ${CJF.cat === c ? 'on' : ''}" onclick="CJF.cat='${h(c)}';pintarCaja()">${h(c.charAt(0) + c.slice(1).toLowerCase())}</button>`).join('')}</div>
+      <div class="pos-grid">${L.map(x => `<button class="pos-p" onclick="cartAdd('${h(x.n).replace(/'/g, "\\'")}')"><b>${h(x.n)}</b><span>${x.p ? peso(x.p) : 'agregado'}</span></button>`).join('') || '<p class="muted">Sin productos.</p>'}</div>
+    </div>
+    <div class="pos-r card" id="cj_cart"></div>
+  </div>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><b>Turno abierto</b> <small class="muted">desde ${fFecha(CJ.caja.ap)} · ${h(CJ.caja.abrio)} · inicial ${peso(CJ.caja.ini)}</small></div><div><b>${V.length}</b> ventas · <b>${peso(totT)}</b></div></div>
+    <div class="lista" style="margin-top:8px">${(CJ.caja.ventas || []).slice().reverse().slice(0, 15).map(v => `<div class="it" style="${v.anul ? 'opacity:.45' : ''}"><div class="c"><b>${v.it.map(x => x.q + '× ' + h(x.n)).join(', ')}</b><small>${v.f.slice(11)} · ${h(v.mp)} · ${h(v.tipo)}${v.nota ? ' · ' + h(v.nota) : ''}${v.anul ? ' · ANULADA' : ''}${v.pend ? ' · ⏳ sin señal, se enviará' : ''}</small></div><div class="num"><b>${peso(v.t)}</b>${esAdmin() && !v.anul && !v.pend ? `<br><button class="btn chico gris" onclick="ventaAnular('${v.id}')">Anular</button>` : ''}</div></div>`).join('') || '<p class="muted">Aún no hay ventas en este turno.</p>'}</div></div>`,
+    { barra: `${esAdmin() ? '<button class="btn gris" onclick="ir(ventasCajaVista)">📊 Reportes</button>' : ''}<button class="btn rojo" onclick="cajaCerrarModal()">🔒 Cerrar caja (arqueo)</button>` });
+  $('#cj_q').oninput = e => { CJF.q = e.target.value; clearTimeout(window._cjt); window._cjt = setTimeout(() => { pintarCaja(); const i = $('#cj_q'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }, 300); };
+  pintarCart();
+}
+function cartAdd(n) { const x = CART.items.find(i => i.n === n); if (x) x.q++; else { const p = (CJ.carta || []).find(c => c.n === n); CART.items.push({ n, q: 1, p: p ? p.p : 0 }); } pintarCart(); }
+function pintarCart() {
+  const el = $('#cj_cart'); if (!el) return; const T = cartTotal(), vuelto = CART.mp === 'Efectivo' && Number(CART.paga) ? Number(CART.paga) - T.t : null;
+  el.innerHTML = `<h3 style="margin:0 0 8px">🧾 Venta</h3>
+    ${CART.items.length ? CART.items.map((x, k) => `<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--b)"><div style="flex:1;font-size:14px"><b>${h(x.n)}</b><br><small class="muted">${peso(x.p)} c/u</small></div>
+      <button class="btn chico gris" style="width:34px;padding:4px" onclick="CART.items[${k}].q--;if(CART.items[${k}].q<=0)CART.items.splice(${k},1);pintarCart()">−</button><b style="min-width:22px;text-align:center">${x.q}</b><button class="btn chico gris" style="width:34px;padding:4px" onclick="CART.items[${k}].q++;pintarCart()">+</button><b style="min-width:72px;text-align:right">${peso(x.q * x.p)}</b></div>`).join('') : '<p class="muted" style="font-size:14px">Toca los platos para agregarlos.</p>'}
+    <div class="chips" style="margin:10px 0 6px">${TIPOS_VENTA.map(t => `<button class="chip ${CART.tipo === t ? 'on' : ''}" onclick="CART.tipo='${t}';pintarCart()">${t}</button>`).join('')}</div>
+    <div class="row"><div><label class="l" style="margin-top:4px">Descuento $</label><input type="number" inputmode="numeric" value="${CART.desc || ''}" oninput="CART.desc=this.value;cartResumen()"></div><div><label class="l" style="margin-top:4px">Nota</label><input value="${h(CART.nota)}" placeholder="Ej: sin cebolla" oninput="CART.nota=this.value"></div></div>
+    <label class="l">Medio de pago</label><div class="chips">${(CJ.medios || ['Efectivo', 'Débito', 'Crédito', 'Transferencia']).map(m => `<button class="chip ${CART.mp === m ? 'on' : ''}" onclick="CART.mp='${m}';pintarCart()">${m}</button>`).join('')}</div>
+    ${CART.mp === 'Efectivo' ? `<label class="l">Paga con</label><input type="number" inputmode="numeric" value="${CART.paga || ''}" placeholder="$" oninput="CART.paga=this.value;cartResumen()">` : ''}
+    <div id="cj_res" style="margin-top:10px"></div>
+    <button class="btn full" style="margin-top:10px;font-size:17px" ${CART.items.length ? '' : 'disabled'} onclick="cobrar()">Cobrar ${peso(T.t)}</button>
+    ${CART.items.length ? '<button class="btn gris full" style="margin-top:6px" onclick="CART.items=[];CART.desc=0;CART.paga=\'\';CART.nota=\'\';pintarCart()">Vaciar</button>' : ''}`;
+  cartResumen();
+}
+function cartResumen() {
+  const el = $('#cj_res'); if (!el) return; const T = cartTotal(), v = CART.mp === 'Efectivo' && Number(CART.paga) ? Number(CART.paga) - T.t : null;
+  el.innerHTML = `${T.desc ? `<div style="display:flex;justify-content:space-between"><span class="muted">Subtotal</span><span>${peso(T.sub)}</span></div><div style="display:flex;justify-content:space-between"><span class="muted">Descuento</span><span>−${peso(T.desc)}</span></div>` : ''}<div style="display:flex;justify-content:space-between;font-size:20px"><b>Total</b><b>${peso(T.t)}</b></div>${v != null ? `<div style="display:flex;justify-content:space-between;font-size:16px;color:${v < 0 ? 'var(--r)' : 'var(--ok)'}"><b>${v < 0 ? 'Falta' : 'Vuelto'}</b><b>${peso(Math.abs(v))}</b></div>` : ''}`;
+  const b = $('#cj_cart .btn.full'); if (b && /Cobrar/.test(b.textContent)) b.textContent = 'Cobrar ' + peso(T.t);
+}
+async function cajaAbrir() { try { CJ = await api('cajaAbrir', { inicial: $('#cj_ini').value }, { txt: 'Abriendo caja…' }); toast('🔓 Caja abierta'); pintarCaja(); } catch (e) { toast(e.message); } }
+async function cobrar() {
+  const T = cartTotal(); if (!CART.items.length) return;
+  if (CART.mp === 'Efectivo' && Number(CART.paga) && Number(CART.paga) < T.t) return toast('El monto con que paga es menor al total');
+  const d = { items: CART.items.map(x => ({ n: x.n, q: x.q, p: x.p })), desc: T.desc, medio: CART.mp, tipo: CART.tipo, nota: CART.nota.trim() };
+  const vuelto = CART.mp === 'Efectivo' && Number(CART.paga) ? Number(CART.paga) - T.t : null;
+  try {
+    const r = await enviarOEncolar('venta', d, 'Venta Take a Food ' + peso(T.t));
+    if (r.enCola) CJ.caja.ventas.push({ id: 'pend', f: new Date().toISOString().slice(0, 16).replace('T', ' '), it: d.items, t: T.t, mp: d.medio, tipo: d.tipo, nota: d.nota, anul: false, pend: true });
+    else if (r.venta) CJ.caja.ventas.push(r.venta);
+    CART = { items: [], tipo: CART.tipo, mp: 'Efectivo', desc: 0, paga: '', nota: '' };
+    toast(`✅ Venta ${peso(T.t)}${vuelto != null ? ' · vuelto ' + peso(vuelto) : ''}${r.enCola ? ' · sin señal: se enviará sola' : ''}`, 4000); pintarCaja();
+  } catch (e) { toast(e.message, 5000); }
+}
+async function ventaAnular(id) {
+  const m = prompt('¿Por qué se anula la venta? (devuelve los ingredientes al stock)'); if (m === null) return;
+  try { CJ = await api('ventaAnular', { id, motivo: m }, { txt: 'Anulando…' }); toast('Venta anulada'); pintarCaja(); } catch (e) { toast(e.message); }
+}
+function cajaCerrarModal() {
+  const c = CJ.caja, V = (c.ventas || []).filter(v => !v.anul && !v.pend), por = {}; (CJ.medios || []).forEach(m => por[m] = 0); V.forEach(v => por[v.mp] = (por[v.mp] || 0) + v.t);
+  const esperado = c.ini + (por['Efectivo'] || 0), prod = {}; V.forEach(v => v.it.forEach(x => prod[x.n] = (prod[x.n] || 0) + x.q));
+  const pend = (c.ventas || []).filter(v => v.pend).length;
+  modal(`<h3>🔒 Cerrar caja (arqueo)</h3>
+    ${pend ? `<div class="aviso r">Hay ${pend} venta(s) sin enviar por falta de señal. Espera a que se envíen antes de cerrar.</div>` : ''}
+    <table class="tabla">${Object.keys(por).map(m => `<tr><td>${h(m)}</td><td class="num">${peso(por[m])}</td></tr>`).join('')}<tr><td><b>Total vendido</b> <small class="muted">(${V.length} ventas)</small></td><td class="num"><b>${peso(V.reduce((a, v) => a + v.t, 0))}</b></td></tr></table>
+    <div class="aviso v" style="margin-top:10px">Efectivo que debería haber: inicial ${peso(c.ini)} + ventas en efectivo ${peso(por['Efectivo'] || 0)} = <b>${peso(esperado)}</b></div>
+    <label class="l">Efectivo contado en la caja</label><input id="cc_c" type="number" inputmode="numeric" placeholder="$" oninput="const d=(Number(this.value)||0)-${esperado};$('#cc_d').innerHTML=this.value===''?'':'Diferencia: <b style=&quot;color:'+(d?'var(--r)':'var(--ok)')+'&quot;>'+(d>0?'+':d<0?'−':'')+peso(Math.abs(d))+'</b>'+(d<0?' (falta)':d>0?' (sobra)':' ✔ cuadrada')">
+    <div id="cc_d" style="margin-top:6px;font-size:15px"></div>
+    <label class="l">Notas</label><input id="cc_n" placeholder="Ej: se pagó gas con efectivo de la caja">
+    <details style="margin-top:10px"><summary class="muted" style="font-size:13px">Lo vendido en el turno</summary><p style="font-size:13px">${Object.keys(prod).sort((a, b) => prod[b] - prod[a]).map(n => prod[n] + '× ' + h(n)).join(' · ') || '—'}</p></details>
+    <div class="row" style="margin-top:14px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="cc_ok">Cerrar caja</button></div>`);
+  $('#cc_ok').onclick = async () => {
+    if ($('#cc_c').value === '') return toast('Escribe cuánto efectivo contaste');
+    try { const r = await api('cajaCerrar', { id: c.id, contado: $('#cc_c').value, notas: $('#cc_n').value.trim() }, { txt: 'Cerrando caja…' }); CJ = r; cerrarModal();
+      modal(`<h3>✅ Caja cerrada</h3><p>Vendido: <b>${peso(r.cerrada.res.total)}</b> en ${r.cerrada.res.n} ventas.<br>Efectivo esperado ${peso(r.cerrada.res.esperado)} · contado ${peso(r.cerrada.contado)}<br>Diferencia: <b style="color:${r.cerrada.dif ? 'var(--r)' : 'var(--ok)'}">${r.cerrada.dif < 0 ? '−' : r.cerrada.dif > 0 ? '+' : ''}${peso(Math.abs(r.cerrada.dif))}</b></p><button class="btn full" onclick="cerrarModal();pintarCaja()">Listo</button>`);
+    } catch (e) { toast(e.message); }
+  };
+}
+
+/* ═════════════════════ Cargar carta y recetas desde Fudo ═════════════════════ */
+function catIngrediente(n) {
+  const t = norm(n);
+  return /POTE|TAPA|BOLSA|PAPEL|CUBIERTO|ALUMINIO|SERVILLETA|VASO|BANDEJA|CAJA|FILM/.test(t) ? 'Envases y potes' : /BEBIDA|AGUA|JUGO/.test(t) ? 'Bebidas y jugos' : /QUESO|HUEVO|LECHE|CREMA|MANTEQUILLA/.test(t) ? 'Lácteos y huevos'
+    : /PREPARACION|POLLO|CERDO|POSTA|CARNE|ATUN|JAMON|CAMARON|LOMO|VACUNO|MECHADA|ROAST|SAMOSA|ARROLLADO|APANADO/.test(t) ? 'Proteínas' : /PAN |^PAN$|TORTILLA|PAN\b/.test(t) ? 'Panadería'
+      : /LECHUGA|TOMATE|PEPINO|PALTA|CEBOLLA|PIMENTON|REPOLLO|ZANAHORIA|CILANTRO|PEREJIL|AJO|CHOCLO|JALAPE|LIMON|PAPAS/.test(t) ? 'Verduras y frutas' : 'Abarrotes';
+}
+const uniFudo = u => /KG/i.test(u) ? 'kg' : /^L$|LITRO/i.test(String(u).trim()) ? 'L' : /^G$|GR/i.test(String(u).trim()) ? 'g' : /ML/i.test(u) ? 'ml' : 'unidad';
+function importarFudo() {
+  elegirArchivo('.xlsx', async file => {
+    try {
+      const hojas = await leerExcel(file), hp = Object.keys(hojas).find(n => /^productos$/i.test(n.trim())), hr = Object.keys(hojas).find(n => /^recetas$/i.test(n.trim()));
+      if (!hp) return toast('El archivo no tiene la hoja "Productos" de Fudo', 6000);
+      const P = hojas[hp], e = (P[0] || []).map(x => norm(x)), col = t => e.indexOf(t);
+      const productos = P.slice(1).filter(r => r && r[col('NOMBRE')]).map(r => ({ cod: String(r[col('CODIGO')] ?? '').trim(), n: String(r[col('NOMBRE')]).trim(), cat: String(r[col('CATEGORIA')] ?? 'OTROS').trim() || 'OTROS', precio: numCL(String(r[col('PRECIO')] ?? '0')) || 0, costo: numCL(String(r[col('COSTO')] ?? '0')) || 0, activo: !/^N/i.test(String(r[col('ACTIVO')] ?? 'SI')) }));
+      const R = hr ? hojas[hr] : [], re = (R[0] || []).map(x => norm(x)), rc = t => re.indexOf(t);
+      const recetas = R.slice(1).filter(r => r && r[rc('PRODUCTO')] && r[rc('INGREDIENTE')]).map(r => ({ p: String(r[rc('PRODUCTO')]).trim(), i: String(r[rc('INGREDIENTE')]).trim().replace(/\s+/g, ' '), q: numCL(String(r[rc('CANTIDAD')] ?? '0')) || 0, u: String(r[rc('UNIDAD')] ?? '') }));
+      const ing = {}; recetas.forEach(l => { const k = norm(l.i); if (!ing[k]) ing[k] = { n: l.i, u: uniFudo(l.u), usos: 0 }; ing[k].usos++; });
+      const AL = (S.alias || []).filter(a => a.rut === 'FUDO'), Pd = S.productos || [];
+      const lista = Object.values(ing).map(g => { const k = norm(g.n), al = AL.find(a => a.n === k); let p = (al && Pd.find(x => x.c === al.c)) || Pd.find(x => norm(x.n) === k), tipo = p ? 'ok' : ''; if (!p) { p = prodParecido(g.n); if (p) tipo = 'parecido'; } return Object.assign(g, { p, tipo: p ? tipo : 'nuevo', cat: catIngrediente(g.n) }); })
+        .sort((a, b) => ['parecido', 'nuevo', 'ok'].indexOf(a.tipo) - ['parecido', 'nuevo', 'ok'].indexOf(b.tipo) || a.n.localeCompare(b.n));
+      window._FUDO = { productos, recetas, lista };
+      const n = t => lista.filter(x => x.tipo === t).length;
+      modal(`<h3>📥 Carta de Fudo</h3><p style="font-size:13.5px;margin-top:0"><b>${productos.length}</b> productos de la carta (${productos.filter(p => p.activo).length} activos) · <b>${recetas.length}</b> líneas de receta · <b>${lista.length}</b> ingredientes: ${n('ok')} ya están en bodega, <span style="color:#b26a00">${n('parecido')} parecidos</span>, ${n('nuevo')} nuevos.</p>
+        <p class="muted" style="font-size:13px">Cada ingrediente se enlaza a un producto de bodega para que la venta lo descuente del stock. En los parecidos toca <b>usar</b> solo si es el mismo producto; si lo dejas vacío, se crea nuevo.</p>
+        <div class="scroll" style="max-height:50vh"><table class="tabla ab"><tr><th>Ingrediente en Fudo</th><th>Producto en bodega</th><th>Si es nuevo</th></tr>
+        ${lista.map((g, k) => `<tr><td>${h(g.n)}<br><small class="muted">${h(g.u)} · en ${g.usos} receta(s)${g.tipo === 'parecido' ? ' · <span style="color:#b26a00">¿es el mismo?</span>' : ''}</small></td><td><input data-fi="${k}" list="dl-prod" style="min-width:220px;padding:6px 8px" placeholder="Nuevo: ${h(g.n)}" value="${g.p && g.tipo === 'ok' ? h(g.p.n + ' · ' + g.p.c) : ''}">${g.p && g.tipo === 'parecido' ? `<br><small>¿Es <b>${h(g.p.n)}</b>? <a href="#" onclick="event.preventDefault();$('[data-fi=\'${k}\']').value='${h((g.p.n + ' · ' + g.p.c).replace(/'/g, ''))}'">usar</a></small>` : ''}</td><td>${selectHTML('fc_' + k, S.categorias || [], g.cat)}</td></tr>`).join('')}</table></div>
+        <div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="fu_ok">Cargar carta</button></div>`);
+      $('#modal .box').style.maxWidth = '900px'; $('#modal .box').style.width = '96vw';
+      $('#fu_ok').onclick = async () => {
+        const ingredientes = [];
+        for (const [k, g] of lista.entries()) { const v = $(`[data-fi="${k}"]`).value.trim(), p = v ? trProd(v) : null; if (v && !p) return toast('No encontré "' + v + '": elígelo de la lista o déjalo vacío'); ingredientes.push({ n: g.n, c: p ? p.c : '', u: g.u, cat: $('#fc_' + k).value }); }
+        if (!confirm('¿Cargar la carta de Fudo? Reemplaza la carta y recetas actuales de la caja.')) return;
+        try { const r = await api('importarFudo', { productos, recetas, ingredientes, crear: true, alias: true }, { txt: 'Cargando carta…' }); CJ = r; S.productos = r.productos; ls.set('sesion', S); prepararListas(); cerrarModal();
+          toast(`✅ Carta cargada: ${r.platos} productos, ${r.lineas} líneas de receta, ${r.creados} ingredientes nuevos en bodega`, 7000); pintarCaja(); } catch (e) { toast(e.message, 6000); }
+      };
+    } catch (err) { toast('No se pudo leer el archivo: ' + err.message, 6000); }
+  });
+}
+
+/* ═════════════════════ Reportes de ventas Take a Food ═════════════════════ */
+let VC = { per: 7, tab: 'res', D: null };
+async function ventasCajaVista() {
+  pantalla('Ventas Take a Food', '<div class="card"><p class="muted">Cargando ventas…</p></div>');
+  const desde = ISO(new Date(Date.now() - (VC.per - 1) * 864e5));
+  try { VC.D = await api('ventasCaja', { desde, hasta: hoyISO() }, { mudo: true }); } catch (e) { return pantalla('Ventas Take a Food', `<div class="card"><p>${h(e.message)}</p></div>`); }
+  pintarVentasCaja();
+}
+function pintarVentasCaja() {
+  const D = VC.D, V = D.ventas.filter(v => !v.anul), tot = V.reduce((a, v) => a + v.t, 0), costo = V.reduce((a, v) => a + v.costo, 0), dias = {}, prod = {}, mp = {};
+  V.forEach(v => { const d = v.f.slice(0, 10); dias[d] = (dias[d] || 0) + v.t; mp[v.mp] = (mp[v.mp] || 0) + v.t; v.it.forEach(x => { const o = prod[x.n] = prod[x.n] || { q: 0, t: 0 }; o.q += x.q; o.t += x.q * x.p; }); });
+  const serie = []; for (let i = VC.per - 1; i >= 0; i--) { const d = ISO(new Date(Date.now() - i * 864e5)); serie.push({ l: VC.per > 14 ? d.slice(8) : DIAS_AB[(new Date(d + 'T12:00:00').getDay() + 6) % 7 + 1].slice(0, 2) + ' ' + d.slice(8), v: Math.round(dias[d] || 0) }); }
+  const top = Object.keys(prod).sort((a, b) => prod[b].t - prod[a].t), tabs = [['res', 'Resumen'], ['carta', 'Carta y costos'], ['cajas', 'Cajas y arqueos']];
+  let cuerpo = '';
+  if (VC.tab === 'res') cuerpo = `
+    <div class="kpis"><div class="kpi"><small>Ventas</small><b>${peso(tot)}</b></div><div class="kpi"><small>N° de ventas</small><b>${V.length}</b></div><div class="kpi"><small>Promedio por venta</small><b>${peso(V.length ? Math.round(tot / V.length) : 0)}</b></div><div class="kpi"><small>Costo de ingredientes</small><b>${tot ? Math.round(costo / tot * 100) + ' %' : '–'}</b><small>${peso(costo)} · margen ${peso(tot - costo)}</small></div></div>
+    <div class="card"><h3 style="margin-top:0">Ventas por día</h3>${grafBarras(serie)}</div>
+    <div class="card"><h3 style="margin-top:0">Por medio de pago</h3>${Object.keys(mp).map(m => `<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:14px"><span>${h(m)}</span><span>${peso(mp[m])} · ${Math.round(mp[m] / tot * 100)} %</span></div><div class="prog"><i style="width:${Math.round(mp[m] / tot * 100)}%"></i></div></div>`).join('') || '<p class="muted">Sin ventas.</p>'}</div>
+    <div class="card"><h3 style="margin-top:0">Lo más vendido</h3><table class="tabla"><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Venta</th></tr>${top.slice(0, 20).map(n => `<tr><td>${h(n)}</td><td class="num">${prod[n].q}</td><td class="num">${peso(prod[n].t)}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">Sin ventas.</td></tr>'}</table></div>`;
+  else if (VC.tab === 'carta') { const C = D.carta.slice().sort((a, b) => a.cat.localeCompare(b.cat) || a.n.localeCompare(b.n));
+    cuerpo = `<div class="aviso v">Costo según la receta y el último precio de compra de cada ingrediente. Si un ingrediente sube, aquí se ve cómo baja el margen del plato.</div><div class="card"><div class="scroll"><table class="tabla"><tr><th>Producto</th><th class="num">Precio</th><th class="num">Costo</th><th class="num">Costo %</th><th class="num">Margen</th><th></th></tr>
+    ${C.map((x, k) => { const fc = x.p ? x.costo / x.p * 100 : 0; return `<tr style="${x.act ? '' : 'opacity:.5'}"><td><b>${h(x.n)}</b><br><small class="muted">${h(x.cat)} · ${x.rec.length} ingrediente(s)${x.rec.some(l => !l.c) ? ' · <span style="color:var(--r)">receta incompleta</span>' : ''}</small></td><td class="num">${peso(x.p)}</td><td class="num">${peso(x.costo)}</td><td class="num" style="color:${fc > 40 ? 'var(--r)' : fc > 32 ? '#b26a00' : 'var(--ok)'}"><b>${x.p ? Math.round(fc) + ' %' : '–'}</b></td><td class="num">${peso(x.p - x.costo)}</td><td><button class="btn chico gris" onclick="cartaEditar('${h(x.n).replace(/'/g, "\\'")}')">✏️</button></td></tr>`; }).join('')}</table></div></div>`; }
+  else cuerpo = `<div class="card lista">${D.cajas.slice().reverse().map(c => `<div class="it"><div class="c"><b>${fFecha(c.ap)} ${c.ap.slice(11)}${c.cierre ? ' → ' + c.cierre.slice(11) : ' · abierta'}</b><small>Abrió ${h(c.abrio)}${c.cerro ? ' · cerró ' + h(c.cerro) : ''} · inicial ${peso(c.ini)} · ${c.n} ventas</small></div><div class="num"><b>${peso(c.total)}</b>${c.cierre ? `<br><small style="color:${c.dif ? 'var(--r)' : 'var(--ok)'}">${c.dif ? 'diferencia ' + (c.dif < 0 ? '−' : '+') + peso(Math.abs(c.dif)) : 'cuadrada ✔'}</small>` : ''}</div></div>`).join('') || '<p class="muted">Sin cajas en este período.</p>'}</div>`;
+  pantalla('Ventas Take a Food', `<div class="chips" style="margin-bottom:8px">${[[1, 'Hoy'], [7, '7 días'], [30, '30 días'], [90, '3 meses']].map(([d, t]) => `<button class="chip ${VC.per === d ? 'on' : ''}" onclick="VC.per=${d};ventasCajaVista()">${t}</button>`).join('')}</div>
+    <div class="tabs">${tabs.map(([k, t]) => `<button class="${VC.tab === k ? 'on' : ''}" onclick="VC.tab='${k}';pintarVentasCaja()">${t}</button>`).join('')}</div>${cuerpo}`,
+    { barra: `<button class="btn gris" onclick="importarFudo()">📥 Carta desde Fudo</button><button class="btn" onclick="ir(cajaTAFVista)">🧾 Ir a la caja</button>` });
+}
+function cartaEditar(n) {
+  const x = VC.D.carta.find(c => c.n === n); if (!x) return;
+  modal(`<h3>✏️ ${h(x.n)}</h3><div class="row"><div><label class="l">Precio de venta</label><input id="ce_p" type="number" value="${x.p}"></div><div><label class="l">Categoría</label><input id="ce_c" value="${h(x.cat)}"></div></div>
+    <label style="display:flex;gap:8px;margin-top:10px"><input type="checkbox" id="ce_a" style="width:auto" ${x.act ? 'checked' : ''}> Se vende (aparece en la caja)</label>
+    <h3>Receta (por 1 porción)</h3><table class="tabla">${x.rec.map(l => `<tr><td>${h(l.i)}${l.c ? '' : ' <small style="color:var(--r)">sin enlace a bodega</small>'}</td><td class="num">${n0(l.q)} ${h(l.u)}</td><td class="num">${peso(Math.round(l.q * (l.costo || 0)))}</td></tr>`).join('') || '<tr><td class="muted">Sin receta</td></tr>'}<tr><td><b>Costo</b></td><td></td><td class="num"><b>${peso(x.costo)}</b></td></tr></table>
+    <p class="muted" style="font-size:12.5px">Para cambiar ingredientes de la receta, edítala en la hoja "Recetas TAF" de la planilla o vuelve a cargar la carta desde Fudo.</p>
+    <div class="row" style="margin-top:12px"><button class="btn gris" onclick="cerrarModal()">Cancelar</button><button class="btn" id="ce_ok">Guardar</button></div>`);
+  $('#ce_ok').onclick = async () => { try { await api('cartaItem', { original: x.n, n: x.n, c: x.c, cat: $('#ce_c').value.trim() || x.cat, p: $('#ce_p').value, act: $('#ce_a').checked }, { txt: 'Guardando…' }); cerrarModal(); toast('✅ Guardado'); ventasCajaVista(); } catch (e) { toast(e.message); } };
 }
 
 async function ventasVista() {
