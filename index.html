@@ -1483,6 +1483,88 @@ function cpCalc() {
 }
 const cpRed = (v, u) => /kg|^l$/i.test(String(u).trim()) ? Math.ceil(v * 100 - 1e-6) / 100 : Math.ceil(v - 1e-9);
 function cpPedirSemana(X, w) { return X.filas.filter(f => f.sem[w].pedir > 0.0001); }
+/* ═════════════════════ Pedido de verduras (formato de su hoja) ═════════════════════ */
+// [nombre en la hoja, vende en ('kg'|'u'), gramos por unidad por defecto]
+const PV_LISTA = [['ajo', 'u', 50], ['acelga', 'kg', 0], ['apio', 'kg', 0], ['betarraga', 'kg', 0], ['brocoli', 'kg', 0], ['cebolla morada', 'kg', 0], ['cebolla', 'kg', 0], ['cebollin', 'kg', 0], ['cebolla rama', 'kg', 0], ['coliflor', 'kg', 0],
+  ['cilantro', 'u', 100], ['manzana (chica)', 'u', 150], ['pera (chica)', 'u', 150], ['naranja (chica)', 'u', 180], ['piña', 'u', 1500], ['frutillas', 'kg', 0], ['platano', 'u', 180], ['kiwi', 'kg', 0], ['lechuga escarola', 'kg', 0], ['limon', 'u', 100],
+  ['palta', 'kg', 0], ['papa', 'kg', 0], ['pepino', 'kg', 0], ['perejil', 'u', 100], ['pimenton verde', 'u', 200], ['pimenton rojo', 'u', 200], ['pimenton amarillo', 'u', 200], ['repollo verde', 'kg', 0], ['repollo morado', 'kg', 0], ['tomate', 'kg', 0],
+  ['tomate cherry', 'kg', 0], ['zapallo italiano', 'kg', 0], ['zapallo amarillo', 'kg', 0], ['zanahoria', 'kg', 0], ['huevo (bandeja)', 'u', 0]];
+let PVD = { parte: 0, fecha: '', filas: null };
+const pvCfg = () => { try { return Object.assign({}, ls.get('pv_cfg', {}), JSON.parse(S.config.pedidoVerduras || '{}')); } catch (e) { return ls.get('pv_cfg', {}); } };
+function pvBase(n) { return norm(n).replace(/\((CHICA|U|KG|BANDEJA)\)/g, '').replace(/\s+/g, ' ').trim(); }
+const PV_ALIAS = { LECHUGA: 'lechuga escarola', REPOLLO: 'repollo verde', ZAPALLO: 'zapallo amarillo', 'ZAPALLO CAMOTE': 'zapallo amarillo', ZAPALLITO: 'zapallo italiano', HUEVO: 'huevo (bandeja)', HUEVOS: 'huevo (bandeja)', PIMENTON: 'pimenton rojo', MANZANA: 'manzana (chica)', NARANJA: 'naranja (chica)', PERA: 'pera (chica)' };
+function pvMatch(lista, ing) { // ingrediente del requerimiento → fila de la hoja
+  const a = pvBase(ing), w = a.split(' ');
+  if (PV_ALIAS[a]) return lista.find(x => x.n === PV_ALIAS[a]);
+  return lista.find(x => pvBase(x.n) === a) || lista.find(x => { const b = pvBase(x.n).split(' '); return b.every(t => w.some(y => tokSim(y, t))) && w.length <= b.length + 1; }) || lista.find(x => tokSim(pvBase(x.n).split(' ')[0], w[0]) && pvBase(x.n).split(' ').length === 1);
+}
+function pvArmar() {
+  const X = cpCalc(), w = Math.min(CP.w === 9 ? 1 : CP.w, X.W.length - 1), C = pvCfg();
+  const lista = PV_LISTA.map(([n, m, g]) => { const c = C[n] || {}; return { n, modo: c.m || m, gpu: Number(c.g ?? g) || 0, precio: Number(c.p) || 0, gr: 0, de: [] }; });
+  X.filas.filter(f => /VERDURA|FRUTA|HUEVO/.test(norm(f.rubro + ' ' + f.i)) && !/CONGELAD|CONSERVA|DESHIDRAT|NECTAR|JUGO|PULPA|MERMELADA/.test(norm(f.i))).forEach(f => {
+    const s = f.sem[w], q = PVD.parte === 1 ? s.p1 : PVD.parte === 2 ? s.p2 : s.pedir; if (!(q > 0.0001)) return;
+    let x = pvMatch(lista, f.i);
+    if (!x) { x = { n: f.i.toLowerCase(), modo: /KG|^L$/.test(norm(f.uc)) ? 'kg' : 'u', gpu: 0, precio: 0, gr: 0, de: [], extra: true }; const c = C[x.n]; if (c) Object.assign(x, { modo: c.m || x.modo, gpu: Number(c.g) || 0, precio: Number(c.p) || 0 }); lista.push(x); }
+    if (/KG/.test(norm(f.uc))) x.gr += q * 1000; else if (norm(f.uc) === 'G') x.gr += q; else { x.uDir = (x.uDir || 0) + (/BANDEJA/.test(norm(x.n)) && !/BANDEJA/.test(norm(f.uc)) ? q / 30 : q); } // huevos: 30 por bandeja
+    x.de.push(f.i); if (!x.precio && f.p && f.p.costo) x.precioRef = { c: f.p.costo, u: f.p.u };
+  });
+  lista.forEach(x => { x.gr = Math.round(x.gr); if (!x.precio && x.precioRef) x.precio = x.modo === 'u' && /KG/.test(norm(x.precioRef.u)) && x.gpu ? Math.round(x.precioRef.c * x.gpu / 1000) : Math.round(x.precioRef.c); });
+  return { X, w, lista };
+}
+function pvCalcFila(x) {
+  const kg = x.gr / 1000, uni = x.uDir ? Math.ceil(x.uDir - 1e-9) : x.modo === 'u' && x.gpu ? Math.ceil(x.gr / x.gpu - 1e-9) : 0;
+  const cant = x.modo === 'u' ? uni : Math.ceil(kg * 10 - 1e-9) / 10;
+  return { kg: x.gr ? Math.ceil(kg * 10 - 1e-9) / 10 : 0, uni, total: Math.round((x.precio || 0) * (cant || 0)) };
+}
+async function pedidoVerdurasVista() { return conPlan('Pedido de verduras', pintarPV, pedidoVerdurasVista); }
+function pintarPV() {
+  if (!PVD.fecha) PVD.fecha = hoyISO();
+  const A = pvArmar(); PVD.filas = A.lista; const vd2 = MINUTAS_PLAN.some(m => String((S.config.verdurasMinuta || {})[m] || '') === '2');
+  pantalla('Pedido de verduras', `
+  <div class="card"><div class="row"><div><label class="l" style="margin-top:0">Fecha del pedido</label><input type="date" value="${PVD.fecha}" onchange="PVD.fecha=this.value"></div><div><label class="l" style="margin-top:0">Semana</label><div class="chips">${A.X.W.map((l, i) => `<button class="chip ${A.w === i ? 'on' : ''}" onclick="CP.w=${i};pintarPV()">${i === 0 ? 'Esta' : i === 1 ? 'Próxima' : fCorta(l)}</button>`).join('')}</div></div></div>
+    ${vd2 ? `<label class="l">Entrega</label><div class="chips">${['Semana completa', 'Lun–mié', 'Jue–dom'].map((t, i) => `<button class="chip ${PVD.parte === i ? 'on' : ''}" onclick="PVD.parte=${i};pintarPV()">${t}</button>`).join('')}</div>` : ''}
+    <p class="muted" style="font-size:13px;margin:8px 0 0">La app pone los <b>gramos que se necesitan</b> (requerimiento − stock + margen). Si el verdulero vende por unidad, se calcula cuántas unidades pedir con el peso de cada una. Todo se puede corregir.</p></div>
+  <div class="card"><div class="scroll"><table class="tabla ab" id="pv_t"><tr><th>Producto</th><th class="num">Necesito (g)</th><th>Vende en</th><th class="num">g por unidad</th><th class="num">Pedido kg</th><th class="num">Pedido unid.</th><th class="num">Valor neto</th><th class="num">Total</th></tr>
+    ${A.lista.map((x, k) => `<tr data-k="${k}" style="${x.gr || x.uDir ? '' : 'opacity:.55'}"><td><b>${h(x.n)}</b>${x.de.length ? `<br><small class="muted">${h(x.de.join(', ')).slice(0, 60)}</small>` : ''}</td>
+      <td class="num"><input type="number" style="max-width:90px;padding:6px 8px" value="${x.uDir ? '' : x.gr || ''}" placeholder="${x.uDir ? n0(x.uDir) + ' u' : '0'}" oninput="PVD.filas[${k}].gr=Number(this.value)||0;PVD.filas[${k}].uDir=0;pvFila(${k})"></td>
+      <td><select style="padding:6px" onchange="PVD.filas[${k}].modo=this.value;pvGuardarCfg(${k});pvFila(${k})"><option value="kg" ${x.modo === 'kg' ? 'selected' : ''}>kg</option><option value="u" ${x.modo === 'u' ? 'selected' : ''}>unidad</option></select></td>
+      <td class="num"><input type="number" style="max-width:80px;padding:6px 8px" value="${x.gpu || ''}" placeholder="—" oninput="PVD.filas[${k}].gpu=Number(this.value)||0;pvGuardarCfg(${k});pvFila(${k})"></td>
+      <td class="num" id="pv_kg${k}"></td><td class="num" id="pv_u${k}"></td>
+      <td class="num"><input type="number" style="max-width:90px;padding:6px 8px" value="${x.precio || ''}" placeholder="$" oninput="PVD.filas[${k}].precio=Number(this.value)||0;pvGuardarCfg(${k});pvFila(${k})"></td><td class="num" id="pv_t${k}"></td></tr>`).join('')}
+    <tr><td colspan="7" class="num"><b>TOTAL NETO</b></td><td class="num"><b id="pv_tot"></b></td></tr></table></div>
+    <p class="muted" style="font-size:12.5px">"Valor neto" es el precio por kg o por unidad, según cómo vende el verdulero. El peso por unidad y los precios se recuerdan para el próximo pedido.</p></div>`,
+    { barra: `<button class="btn gris" onclick="pvWhatsapp()">💬 WhatsApp</button><button class="btn" onclick="pvImprimir()">🖨️ Imprimir hoja</button>` });
+  PVD.filas.forEach((x, k) => pvFila(k));
+}
+function pvFila(k) {
+  const x = PVD.filas[k], r = pvCalcFila(x);
+  $('#pv_kg' + k).textContent = r.kg ? n0(r.kg) : ''; $('#pv_u' + k).innerHTML = r.uni ? n0(r.uni) : (x.modo === 'u' && x.gr && !x.gpu ? '<small style="color:var(--r)">falta g/u</small>' : '');
+  $('#pv_t' + k).textContent = r.total ? peso(r.total) : ''; $('#pv_tot').textContent = peso(PVD.filas.reduce((a, y) => a + pvCalcFila(y).total, 0));
+}
+let _pvT = null;
+function pvGuardarCfg(k) {
+  const x = PVD.filas[k], C = pvCfg(); C[x.n] = { m: x.modo, g: x.gpu, p: x.precio }; ls.set('pv_cfg', C); S.config.pedidoVerduras = JSON.stringify(C);
+  clearTimeout(_pvT); _pvT = setTimeout(() => api('pedidoVerdurasCfg', { cfg: C }, { mudo: true }).catch(() => { }), 1500);
+}
+const pvPedidas = () => PVD.filas.map(x => ({ x, r: pvCalcFila(x) })).filter(o => o.r.kg || o.r.uni);
+function pvWhatsapp() {
+  const L = pvPedidas(); if (!L.length) return toast('No hay nada que pedir');
+  const txt = `*Pedido verduras – Clean Food*\nFecha: ${fFecha(PVD.fecha)}\n\n` + L.map(({ x, r }) => `• ${x.n.charAt(0).toUpperCase() + x.n.slice(1)}: ${x.modo === 'u' && r.uni ? r.uni + ' unidades' : n0(r.kg) + ' kg'}`).join('\n') + '\n\nGracias 🙌';
+  navigator.clipboard.writeText(txt).then(() => toast('📋 Pedido copiado: pégalo en WhatsApp')).catch(() => modal(`<h3>Pedido</h3><textarea rows="14" style="width:100%">${h(txt)}</textarea><button class="btn full" style="margin-top:10px" onclick="cerrarModal()">Cerrar</button>`));
+}
+function pvImprimir() {
+  const w = window.open('', '_blank'); if (!w) return toast('Permite las ventanas emergentes para imprimir');
+  const tot = PVD.filas.reduce((a, y) => a + pvCalcFila(y).total, 0);
+  w.document.write(`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Pedido verduras ${fFecha(PVD.fecha)}</title><style>body{font-family:Arial,Helvetica,sans-serif;margin:24px;color:#000;font-size:12px}h1{text-align:center;font-size:15px;text-decoration:underline;margin:4px 0 14px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #000;padding:3px 6px;height:16px}th{font-size:11px}.n{text-align:center}.fe{display:flex;align-items:center;gap:20px;margin-bottom:12px;font-weight:bold}.fe span{border:1px solid #000;padding:3px 40px;font-weight:normal}@media print{body{margin:10mm}}</style></head><body>
+    <div style="display:flex;justify-content:space-between;align-items:center"><div></div><img src="${LOGO}" style="height:44px"></div><h1>PEDIDO VERDURAS</h1>
+    <div class="fe">FECHA: <span>${fFecha(PVD.fecha).replace(/-/g, '/')}</span></div>
+    <table><tr><th>PRODUCTO</th><th>PEDIDO EN<br>KILOGRAMOS</th><th>PEDIDO EN<br>UNIDADES</th><th>PESO POR<br>UNIDAD (g)</th><th>VALOR NETO</th><th>TOTAL</th></tr>
+    ${PVD.filas.map(x => { const r = pvCalcFila(x); return `<tr><td>${h(x.n)}${x.modo === 'u' ? ' (u)' : ''}</td><td class="n">${r.kg && x.modo === 'kg' ? n0(r.kg) : ''}</td><td class="n">${r.uni ? n0(r.uni) : ''}</td><td class="n">${x.modo === 'u' && (r.kg || r.uni) && x.gpu ? n0(x.gpu) : ''}</td><td class="n">${r.total && x.precio ? peso(x.precio) : ''}</td><td class="n">${r.total ? peso(r.total) : ''}</td></tr>`; }).join('')}
+    <tr><td colspan="5" style="text-align:right;font-weight:bold">TOTAL</td><td class="n"><b>${tot ? peso(tot) : ''}</b></td></tr></table>
+    <script>window.onload=()=>setTimeout(()=>window.print(),400)<\/script></body></html>`);
+  w.document.close();
+}
+
 async function comprasVista() { return conPlan('Compras y pedidos', pintarCompras, comprasVista); }
 function pintarCompras() {
   const X = cpCalc(), w = CP.w, vd2 = MINUTAS_PLAN.some(m => String((S.config.verdurasMinuta || {})[m] || '') === '2'), esVerd = f => /VERDURA|FRUTA/.test(norm(f.rubro));
@@ -1510,7 +1592,7 @@ function pintarCompras() {
       return `<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><div><b>${h(pv)}</b>${pvo ? `<br><small class="muted">Pedido: ${h(pvo.pedido || '—')} · Llega: ${h(pvo.llegada || '—')}</small>` : ''}</div>${pvo && Object.keys(pre).length ? (dos ? `<div style="display:flex;gap:6px;flex-wrap:wrap">${Object.keys(pre1).length ? bot(pre1, '🛒 Pedido lun–mié') : ''}${Object.keys(pre2).length ? bot(pre2, '🛒 Pedido jue–dom') : ''}</div>` : bot(pre, '🛒 Hacer pedido')) : `<button class="btn chico sec" style="flex:0 0 auto" onclick='cpLista(${JSON.stringify(pv)},${w})'>📋 Lista de compra</button>`}</div>
       <table class="tabla" style="margin-top:6px"><tr><th>Ingrediente</th><th class="num">Necesita</th><th class="num">Stock</th><th class="num">Pedir</th></tr>${g[pv].sort((a, b) => a.i.localeCompare(b.i)).map(f => { const s = f.sem[w]; return `<tr><td><b>${h(f.i)}</b><br><small class="muted">${Object.keys(s.por).map(m => h(cortoMin(m))).join(' · ')}</small></td><td class="num">${n0(cpRed(s.need, f.uc))} ${h(f.uc)}</td><td class="num">${f.p ? n0(Math.round(s.proy * 100) / 100) : '<small class="muted">–</small>'}</td><td class="num" style="color:${s.pedir ? 'var(--r)' : 'var(--ok)'}"><b>${s.pedir ? n0(cpRed(s.pedir, f.uc)) : '✓'}</b>${vd2 && esVerd(f) && s.pedir ? `<br><small class="muted">lun–mié ${n0(cpRed(s.p1, f.uc))} · jue–dom ${n0(cpRed(s.p2, f.uc))}</small>` : ''}</td></tr>`; }).join('')}</table></div>`; }).join('')}`;
   }
-  pantalla('Compras y pedidos', `<div class="tabs">${tabs}</div>${cuerpo}`, { barra: `<button class="btn gris" onclick="ir(abastVista)">⚙️ Raciones y platos</button><button class="btn" onclick="cpPlanilla()">📄 Planilla</button>` });
+  pantalla('Compras y pedidos', `<div class="tabs">${tabs}</div><button class="btn sec" style="margin:0 0 10px" onclick="ir(pedidoVerdurasVista)">🥬 Pedido de verduras (formato hoja)</button>${cuerpo}`, { barra: `<button class="btn gris" onclick="ir(abastVista)">⚙️ Raciones y platos</button><button class="btn" onclick="cpPlanilla()">📄 Planilla</button>` });
 }
 function cpLista(pv, w) {
   const X = cpCalc(), l = X.filas.filter(f => (f.prov || 'Sin proveedor asignado') === pv && f.sem[w].pedir > 0).sort((a, b) => a.i.localeCompare(b.i));
