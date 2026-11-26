@@ -1518,14 +1518,14 @@ function cpSemanas() { return [0, 1, 2, 3].map(i => lunesISO(hoyISO(), i)); }
 /* ═════════════════════ Envases por ración (potes, bolsas…) ═════════════════════ */
 const envReglas = () => (S.config.envasesRacion || []).filter(r => r && r.m && (r.c || r.n) && Number(r.q) > 0);
 const envProd = r => { const P = S.productos || []; return P.find(p => p.c === r.c) || P.find(p => r.n && norm(p.n) === norm(r.n)); };
-const envDe = (min, sv) => envReglas().filter(r => norm(r.m) === norm(min) && (r.sv === '*' || norm(r.sv) === norm(sv)));
+const envDe = (min, sv, k, d) => envReglas().filter(r => norm(r.m) === norm(min) && (r.sv === '*' || norm(r.sv) === norm(sv)) && (!Array.isArray(r.d) || !k || r.d.includes((k - 1) * 5 + d)));
 function envReq(lunes, desde, out) { // suma a out los envases de la semana según las raciones (reales si ya se registraron)
   const k = semanaMinuta(lunes);
   MINUTAS_PLAN.forEach(m => {
     if (!envReglas().some(r => norm(r.m) === norm(m))) return;
     (S.abast.raciones || []).filter(r => minDe(r[5]) === m && r[0] === k && r[1] >= desde).forEach(r => {
       const d = r[1], sv = r[2], dest = r[3], fe = fechaDe(lunes, d), rl = realDe(fe, m, dest, sv), n = rl != null ? rl : (Number(r[4]) || 0) * ajusteFactor(fe, m, dest); if (!n) return;
-      envDe(m, sv).forEach(x => { const p = envProd(x); if (!p) return; const q = n * Number(x.q), key = 'ENV|' + p.c;
+      envDe(m, sv, k, d).forEach(x => { const p = envProd(x); if (!p) return; const q = n * Number(x.q), key = 'ENV|' + p.c;
         const o = (out[key] = out[key] || { i: p.n, ub: p.u, div: 1, uc: p.u, prod: p.c, prov: p.prov || '', rubro: 'ENVASES Y DESECHABLES', env: true, base: 0, por: {}, dias: [0, 0, 0, 0, 0, 0, 0, 0] });
         o.base += q; o.por[m] = (o.por[m] || 0) + q; o.dias[d] += q; });
     });
@@ -2157,7 +2157,7 @@ function desCalc() {
   C.D.forEach(dest => dias.forEach(({ d, f, l, sig, svs, no }) => C.servs.forEach(sv => {
     const kk = semanaMinuta(l); if ((svs && !svs.test(sv)) || (no && no.test(sv))) return;
     if (!(planRac(DES.min, kk, d, sv, dest) > 0 || realDe(f, DES.min, dest, sv) != null)) return;
-    const x = { f, d, dest, sv, sig }; x.plan = planRac(DES.min, kk, d, sv, dest); x.val = desVal(C, kk, x); x.real = realDe(f, DES.min, dest, sv); filas.push(x);
+    const x = { f, d, dest, sv, sig, k: kk }; x.plan = planRac(DES.min, kk, d, sv, dest); x.val = desVal(C, kk, x); x.real = realDe(f, DES.min, dest, sv); filas.push(x);
     ((C.DIA[kk] || {})[dest] || []).filter(z => z.d === d && norm(z.sv) === norm(sv)).forEach(z => { if (!z.f) return; const q = z.q / z.f * x.val; ing[z.i] = (ing[z.i] || 0) + q; const o = (ingD[dest] = ingD[dest] || {}); o[z.i] = (o[z.i] || 0) + q; });
   })));
   const items = Object.keys(ing).map(i => {
@@ -2167,7 +2167,7 @@ function desCalc() {
     const por = {}; Object.keys(ingD).forEach(d => { if (ingD[d][i]) por[d] = ingD[d][i] / (c.div || 1); });
     return { i, n: c.i, uc: c.uc, qty, p, okU, st, cant: i in DES.cant ? DES.cant[i] : sug, rubro: c.rubro || 'OTROS', por, entera: !!c.entera };
   }).filter(x => x.qty > 0).sort((a, b) => (RUB_AB.indexOf(a.rubro) + 1 || 9) - (RUB_AB.indexOf(b.rubro) + 1 || 9) || a.n.localeCompare(b.n));
-  const env = {}, envD = {}; filas.forEach(x => envDe(DES.min, x.sv).forEach(r => { const p = envProd(r); if (!p) return; const q = Number(r.q) * x.val; env[p.c] = (env[p.c] || 0) + q; const o = (envD[p.c] = envD[p.c] || {}); o[x.dest] = (o[x.dest] || 0) + q; }));
+  const env = {}, envD = {}; filas.forEach(x => envDe(DES.min, x.sv, x.k, x.d).forEach(r => { const p = envProd(r); if (!p) return; const q = Number(r.q) * x.val; env[p.c] = (env[p.c] || 0) + q; const o = (envD[p.c] = envD[p.c] || {}); o[x.dest] = (o[x.dest] || 0) + q; }));
   Object.keys(env).forEach(c => { const p = (S.productos || []).find(z => z.c === c), i = 'ENV|' + c, st = (S.stock || []).filter(s => s.c === c && s.b === DES.bodega).reduce((a, s) => a + Number(s.stock || 0), 0);
     items.unshift({ i, n: p.n, uc: p.u, qty: env[c], p, okU: true, st, cant: i in DES.cant ? DES.cant[i] : Math.ceil(env[c] - 1e-9), rubro: 'ENVASES Y DESECHABLES', env: true, por: envD[c] || {}, entera: true }); });
   return { C, k, lunes, dias, filas, items };
@@ -2295,7 +2295,7 @@ function envasesAdmin() {
   const opP = L => L.map(p => `<option value="${h(p.n + ' · ' + p.c)}">`).join('');
   modal(`<h3>📦 Envases por ración</h3>
     <p class="muted" style="font-size:13px;margin-top:0">Lo que lleva cada ración servida. Al despachar se multiplica por las raciones reales y se descuenta de bodega; también entra a las compras y avisa si van a faltar. Take a Food no va aquí: sus envases vienen en las recetas de la caja.</p>
-    ${ENVR.length ? `<table class="tabla">${ENVR.map((r, k) => { const p = envProd(r); return `<tr><td><b>${h(cortoMin(r.m))}</b> · ${r.sv === '*' ? 'todos los servicios' : h(r.sv)}<br><small>${p ? h(p.n) + ' <span class="muted">' + h(p.c) + '</span>' : '<span style="color:var(--r)">⚠️ producto no encontrado: ' + h(r.n || r.c) + '</span>'}</small></td><td class="num"><b>${n0(r.q)}</b> por ración</td><td><button class="btn chico gris" onclick="ENVR.splice(${k},1);envasesAdmin()">✕</button></td></tr>`; }).join('')}</table>` : '<p class="muted">Todavía no hay envases configurados.</p>'}
+    ${ENVR.length ? `<table class="tabla">${ENVR.map((r, k) => { const p = envProd(r); return `<tr><td><b>${h(cortoMin(r.m))}</b> · ${r.sv === '*' ? 'todos los servicios' : h(r.sv)}${Array.isArray(r.d) ? ` <small class="muted">· días ${r.d.join(', ')} del ciclo</small>` : ''}<br><small>${p ? h(p.n) + ' <span class="muted">' + h(p.c) + '</span>' : '<span style="color:var(--r)">⚠️ producto no encontrado: ' + h(r.n || r.c) + '</span>'}</small></td><td class="num"><b>${n0(r.q)}</b> por ración</td><td><button class="btn chico gris" onclick="ENVR.splice(${k},1);envasesAdmin()">✕</button></td></tr>`; }).join('')}</table>` : '<p class="muted">Todavía no hay envases configurados.</p>'}
     <h3 style="margin-top:14px">Agregar</h3>
     <div class="row"><div><label class="l">Minuta</label><select id="en_m" onchange="envSvs(this.value)">${MINUTAS_PLAN.map(m => `<option>${h(m)}</option>`).join('')}</select></div>
     <div><label class="l">Servicio</label><select id="en_sv"><option value="*">Todos los servicios</option>${svs(MINUTAS_PLAN[0]).map(s => `<option>${h(s)}</option>`).join('')}</select></div></div>
@@ -2307,7 +2307,7 @@ function envasesAdmin() {
 function envAgregar() {
   const p = trProd($('#en_p').value.trim()), q = Number($('#en_q').value);
   if (!p) return toast('Elige el envase de la lista de productos'); if (!(q > 0)) return toast('Escribe cuántos lleva cada ración');
-  const r = { m: $('#en_m').value, sv: $('#en_sv').value, c: p.c, n: p.n, q }, k = ENVR.findIndex(x => norm(x.m) === norm(r.m) && x.sv === r.sv && x.c === r.c);
+  const r = { m: $('#en_m').value, sv: $('#en_sv').value, c: p.c, n: p.n, q }, k = ENVR.findIndex(x => norm(x.m) === norm(r.m) && x.sv === r.sv && x.c === r.c && !Array.isArray(x.d));
   if (k >= 0) ENVR[k] = r; else ENVR.push(r); envasesAdmin();
 }
 function envSvs(m) { $('#en_sv').innerHTML = '<option value="*">Todos los servicios</option>' + [...new Set((S.abast.raciones || []).filter(r => minDe(r[5]) === m).map(r => r[2]))].map(x => `<option>${h(x)}</option>`).join(''); }
@@ -2757,6 +2757,7 @@ const uNorm = u => { u = String(u || '').toLowerCase().normalize('NFD').replace(
 function enUnidadBodega(q, u, p) {
   q = Number(q) || 0; if (!p) return q; let a = uNorm(u); const b = uNorm(p.u);
   if (a === 'lam' && p.gl) { q *= p.gl; a = 'g'; }
+  else if (a === 'lam') { const m = String(p.u || '').match(/(\d+)\s*l[aá]min/i); if (m) return q / Number(m[1]); }
   if (a === b) return q; if (a === 'g' && b === 'kg' || a === 'ml' && b === 'l') return q / 1000; if (a === 'kg' && b === 'g' || a === 'l' && b === 'ml') return q * 1000;
   const peso = p.dren || p.cont; if (peso && !/^(kg|g|l|ml)$/.test(b)) { if (a === 'g' || a === 'ml') return q / peso; if (a === 'kg' || a === 'l') return q * 1000 / peso; }
   return q;
